@@ -100,29 +100,25 @@ export default function DashboardPage() {
         setLatestQuickCheck({ score, date, risk });
       }
       
-      // Find most recent assessment (prioritize: Assessment > Fused/DASS-21 > Quick Risk)
+      // Find most recent FULL assessment ONLY (never use quick checks for main score)
       let latestEntry = null;
       let assessmentType = 'None';
       for (let i = items.length - 1; i >= 0; i--) {
         const it = items[i];
-        // Check for new Assessment type first
+        // Check for new Full Assessment type first (ML-powered, 86% accuracy)
         if ((it as any).type === 'burnout_assessment' && (it as any).result?.burnout_score != null) {
           latestEntry = it;
           assessmentType = 'Full Assessment';
           break;
         }
-        // Then check for fused/DASS-21
+        // Legacy support for old DASS-21 assessments (if any exist)
         if (it.fused?.final_score_0_100 != null) {
           latestEntry = it;
           assessmentType = 'DASS-21';
           break;
         }
-        // Finally quick risk
-        if (it.result?.burnout_score != null) {
-          latestEntry = it;
-          assessmentType = 'Quick Risk';
-          break;
-        }
+        // NEVER use quick risk scores for main burnout score
+        // Quick checks are for daily monitoring only (shown in sidebar)
       }
       
       if (latestEntry) {
@@ -144,33 +140,30 @@ export default function DashboardPage() {
         setColorClass(colors.text);
         setGlowColor(colors.glow);
       } else {
-        // No assessment data, just show calendar stress if any
-        if (calStress > 0) {
-          setLatestScore(Math.round(calStress));
-          const lvl = scoreToLevel(calStress);
-          const colors = levelToColor(lvl);
-          setLatestLevelText(lvl);
-          setColorClass(colors.text);
-          setGlowColor(colors.glow);
-        } else {
-          setLatestScore(null);
-        }
+        // No full assessment taken yet - don't show a score
+        // User must take a full assessment to see their official burnout score
+        setLatestScore(null);
       }
 
-      // Build last 7 days chart (prioritize fused over quick risk)
+      // Build last 7 days chart (ONLY Full Assessments, no quick checks)
       const byDay = new Map<string, { score: number; drivers?: string[]; type: string }>();
       for (const it of items) {
         const day = toLocalDayKey(it.timestamp);
-        const isFused = it.fused?.final_score_0_100 != null;
-        const val = isFused 
-          ? clamp(Number(it.fused.final_score_0_100))
-          : clamp(Number(it.result?.burnout_score ?? 0));
-        const drivers = it.fused?.survey?.top_drivers || it.result?.top_drivers || [];
-        const type = isFused ? 'DASS-21' : 'Quick Risk';
-        // Keep the most recent entry for each day
-        if (!byDay.has(day) || isFused) {
-          byDay.set(day, { score: val, drivers, type });
+        
+        // Only include Full Burnout Assessments (ML-powered)
+        if ((it as any).type === 'burnout_assessment' && (it as any).result?.burnout_score != null) {
+          const val = clamp(Number((it as any).result.burnout_score));
+          const drivers = (it as any).result.top_drivers || [];
+          byDay.set(day, { score: val, drivers, type: 'Full Assessment' });
         }
+        // Legacy support for old DASS-21 assessments (if any exist)
+        else if (it.fused?.final_score_0_100 != null && !byDay.has(day)) {
+          const val = clamp(Number(it.fused.final_score_0_100));
+          const drivers = it.fused?.survey?.top_drivers || [];
+          byDay.set(day, { score: val, drivers, type: 'DASS-21' });
+        }
+        // Quick Risk scores are NOT included in this chart
+        // They have their own section in the Progress page
       }
       const today = new Date();
       const days: { day: string; score: number; drivers?: string[]; hasData: boolean; type?: string }[] = [];
@@ -227,10 +220,10 @@ export default function DashboardPage() {
                   <Skeleton className="h-12 w-full max-w-sm mx-auto" />
                 </div>
               ) : latestScore === null ? (
-                <>
-                  <p className="text-lg text-muted-foreground mb-4">No recent assessment yet. Take your first assessment.</p>
+                  <>
+                  <p className="text-lg text-muted-foreground mb-4">No full assessment yet. Take the comprehensive burnout assessment for your official score.</p>
                   <Button asChild size="lg" className="bg-gradient-primary text-lg px-8 py-6">
-                    <Link href="/quick-risk">Take New Assessment <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                    <Link href="/assessment">Take Full Burnout Assessment <ArrowRight className="ml-2 h-5 w-5" /></Link>
                   </Button>
                 </>
               ) : (
@@ -269,11 +262,11 @@ export default function DashboardPage() {
             
              <Card>
                 <CardHeader>
-                  <CardTitle>Recent Assessments</CardTitle>
+                  <CardTitle>Recent Full Assessments</CardTitle>
                   <CardDescription>
-                    Your risk scores from the last 7 days. 
+                    Your ML-powered burnout scores from the last 7 days (86% accuracy). 
                     {chartData.filter(d => d.hasData).length === 0 && !isLoading && (
-                      <span className="text-orange-500 font-medium"> No data yet - take an assessment to see your history!</span>
+                      <span className="text-orange-500 font-medium"> No data yet - take a full assessment to see your history!</span>
                     )}
                   </CardDescription>
                 </CardHeader>
@@ -282,9 +275,9 @@ export default function DashboardPage() {
                     <Skeleton className="h-[250px] w-full" />
                   ) : chartData.filter(d => d.hasData).length === 0 ? (
                     <div className="h-[250px] w-full flex flex-col items-center justify-center text-center gap-4">
-                      <p className="text-muted-foreground">No assessment data for the last 7 days.</p>
+                      <p className="text-muted-foreground">No full assessment data for the last 7 days.</p>
                       <Button asChild variant="outline" size="sm">
-                        <Link href="/quick-risk">Take First Assessment</Link>
+                        <Link href="/assessment">Take Full Assessment</Link>
                       </Button>
                     </div>
                   ) : (
