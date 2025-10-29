@@ -21,8 +21,8 @@ import { cn } from '@/lib/utils';
 
 // Flexible schema that allows any number of days (1-14)
 const forecastSchema = z.object({
-  last14: z.array(z.number().min(0).max(100)).min(1).max(14),
-  deadlines_next7: z.array(z.number().min(0).max(10)).length(7, "Must have 7 values"),
+  last14: z.array(z.number().int().min(0).max(100)).min(1).max(14),
+  deadlines_next7: z.array(z.number().int().min(0).max(10)).length(7, "Must have 7 values"),
 });
 
 type ForecastFormValues = z.infer<typeof forecastSchema>;
@@ -86,14 +86,14 @@ export default function ForecastPage() {
         .map(it => {
           // Check for new burnout assessment
           if ((it as any).type === 'burnout_assessment') {
-            return Number((it as any).result?.burnout_score ?? 0);
+            return Math.round(Number((it as any).result?.burnout_score ?? 0));
           }
           // Then fused scores
           const fusedScore = it.fused?.final_score_0_100;
-          if (fusedScore != null) return Number(fusedScore);
+          if (fusedScore != null) return Math.round(Number(fusedScore));
           // Finally quick risk
           const quickScore = it.result?.burnout_score;
-          if (quickScore != null) return Number(quickScore);
+          if (quickScore != null) return Math.round(Number(quickScore));
           return null;
         })
         .filter((n): n is number => n !== null && !Number.isNaN(n));
@@ -258,8 +258,9 @@ export default function ForecastPage() {
                                       type="number"
                                       min={0}
                                       max={100}
+                                      step={1}
                                       className="h-14 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      onChange={(e) => field.onChange(Math.round(Number(e.target.value)))}
                                     />
                                   </div>
                                 )}
@@ -308,8 +309,9 @@ export default function ForecastPage() {
                                       type="number"
                                       min={0}
                                       max={10}
+                                      step={1}
                                       className="h-14 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      onChange={(e) => field.onChange(Math.round(Number(e.target.value)))}
                                     />
                                   </div>
                                 )}
