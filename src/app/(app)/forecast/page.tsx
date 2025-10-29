@@ -150,7 +150,8 @@ export default function ForecastPage() {
           weightedCount += eventStress;
         });
         
-        deadlines[i] = Math.round(weightedCount);
+        // Clamp to 0-10 range (deadlines can't be negative in this context)
+        deadlines[i] = Math.max(0, Math.min(10, Math.round(weightedCount)));
       }
       
       form.setValue('last14', last14);
