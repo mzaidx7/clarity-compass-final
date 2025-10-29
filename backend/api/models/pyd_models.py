@@ -21,9 +21,15 @@ class SurveySavedResponse(BaseModel):
 class SurveyHistoryItem(BaseModel):
     """A saved survey record including inputs and optional result."""
     timestamp: str
-    input: SurveyRequest
-    result: PredictionResponse | None = None
+    type: str | None = None  # "burnout_assessment" or None for legacy
+    input: SurveyRequest | None = None  # For quick risk (legacy)
+    responses: dict | None = None  # For burnout assessment
+    result: dict | None = None  # Can be PredictionResponse or AssessmentResponse
     fused: FusedPredictResponse | None = None
+    
+    class Config:
+        # Allow extra fields for flexibility
+        extra = "allow"
 
 class SurveyHistoryResponse(BaseModel):
     items: list[SurveyHistoryItem]
