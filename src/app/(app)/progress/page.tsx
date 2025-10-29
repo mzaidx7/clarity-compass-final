@@ -227,10 +227,11 @@ export default function ProgressPage() {
             <p className="text-sm text-muted-foreground">No history.</p>
           ) : (
             <div className="text-sm overflow-x-auto">
-              <div className="grid grid-cols-5 gap-2 font-medium text-muted-foreground min-w-[600px]">
+              <div className="grid grid-cols-6 gap-2 font-medium text-muted-foreground min-w-[700px]">
                 <div>Date</div>
                 <div>Type</div>
-                <div>Score</div>
+                <div>Base Score</div>
+                <div>Calendar</div>
                 <div>Level</div>
                 <div>Drivers</div>
               </div>
@@ -240,16 +241,30 @@ export default function ProgressPage() {
                   const level = scoreToLevel(score);
                   const type = (h as any).type === 'burnout_assessment' ? 'Full Assessment' : 'Quick Check';
                   const typeColor = (h as any).type === 'burnout_assessment' ? 'text-primary font-semibold' : 'text-muted-foreground';
+                  
+                  // Show calendar contribution if this is a full assessment
+                  const showCalendar = (h as any).type === 'burnout_assessment';
+                  
                   return (
-                    <div key={idx} className="grid grid-cols-5 gap-2 items-center min-w-[600px]">
+                    <div key={idx} className="grid grid-cols-6 gap-2 items-center min-w-[700px]">
                       <div className="text-xs">{new Date(h.timestamp).toLocaleDateString()} {new Date(h.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                       <div className={`text-xs ${typeColor}`}>{type}</div>
                       <div>{Math.round(score)}</div>
+                      <div className="text-xs">
+                        {showCalendar ? (
+                          <span className="text-muted-foreground">See Dashboard</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </div>
                       <div className={levelToColor(level).text}>{level}</div>
                       <div className="truncate text-xs">{(h.result?.top_drivers || []).join(', ')}</div>
                     </div>
                   );
                 })}
+              </div>
+              <div className="mt-3 p-2 bg-muted/30 rounded text-xs text-muted-foreground">
+                <strong>Note:</strong> Calendar stress is calculated in real-time on the Dashboard based on your upcoming events. For Full Assessments, the Dashboard shows: Base Score + Calendar Events = Total Score.
               </div>
             </div>
           )}
