@@ -44,12 +44,16 @@ export default function ProgressPage() {
   }, []);
 
   const chartData = useMemo(() => {
-    // All scores chart (includes both quick checks and full assessments)
-    return (history || []).slice(-20).map(h => ({
-      time: new Date(h.timestamp).toLocaleDateString(),
-      score: h.result?.burnout_score ?? null,
-      type: (h as any).type === 'burnout_assessment' ? 'Full' : 'Quick'
-    })).filter(d => d.score !== null);
+    // ONLY Full Burnout Assessments (ML-powered, 86% accuracy) - NO quick checks
+    return (history || [])
+      .filter(h => (h as any).type === 'burnout_assessment' && h.result?.burnout_score != null)
+      .slice(-20) // Last 20 full assessments
+      .map(h => ({
+        time: new Date(h.timestamp).toLocaleDateString(),
+        score: h.result?.burnout_score ?? null,
+        type: 'Full Assessment'
+      }))
+      .filter(d => d.score !== null);
   }, [history]);
 
   const quickCheckData = useMemo(() => {
@@ -127,20 +131,27 @@ export default function ProgressPage() {
       </Card>
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Recent Scores</CardTitle>
-          <CardDescription>Up to the last 20 saved results.</CardDescription>
+          <CardTitle>Full Assessment History</CardTitle>
+          <CardDescription>Your ML-powered burnout scores (86% accuracy) - up to the last 20 full assessments.</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-[220px] w-full" />
           ) : chartData.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No saved results yet. Take an assessment and save it.</p>
+            <p className="text-sm text-muted-foreground">No full assessments yet. Take a full assessment to see your history here.</p>
           ) : (
             <ChartContainer config={chartConfig} className="min-h-[220px] w-full">
               <LineChart data={chartData}>
                 <CartesianGrid vertical={false} />
-                <XAxis dataKey="time" tickLine={false} axisLine={false} tickMargin={8} />
-                <YAxis domain={[0, 100]} />
+                <XAxis dataKey="time" tickLine={false} axisLine={false} tickMargin={8} fontSize={11} />
+                <YAxis 
+                  domain={[0, 100]} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  fontSize={11}
+                  ticks={[0, 25, 50, 75, 100]}
+                  width={35}
+                />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Line 
                   type="monotone" 
@@ -195,7 +206,7 @@ export default function ProgressPage() {
             )}
             <div className="mt-4 p-3 bg-muted/30 rounded-lg">
               <p className="text-xs text-muted-foreground">
-                <strong>Note:</strong> Quick checks are estimates for daily tracking. Your official burnout score comes from the Full Burnout Assessment (visible in "Recent Scores" above).
+                <strong>Note:</strong> Quick checks are estimates for daily tracking. Your official burnout score comes from the Full Burnout Assessment (visible in "Full Assessment History" above).
               </p>
             </div>
           </CardContent>
@@ -204,8 +215,8 @@ export default function ProgressPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle>History Details</CardTitle>
-          <CardDescription>Date, Score, Level, and drivers</CardDescription>
+          <CardTitle>Complete History</CardTitle>
+          <CardDescription>All assessments (Full + Quick Checks) - last 20 entries</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -215,9 +226,10 @@ export default function ProgressPage() {
           ) : history.length === 0 ? (
             <p className="text-sm text-muted-foreground">No history.</p>
           ) : (
-            <div className="text-sm">
-              <div className="grid grid-cols-4 gap-2 font-medium text-muted-foreground">
+            <div className="text-sm overflow-x-auto">
+              <div className="grid grid-cols-5 gap-2 font-medium text-muted-foreground min-w-[600px]">
                 <div>Date</div>
+                <div>Type</div>
                 <div>Score</div>
                 <div>Level</div>
                 <div>Drivers</div>
@@ -226,12 +238,15 @@ export default function ProgressPage() {
                 {history.slice(-20).reverse().map((h, idx) => {
                   const score = h.result?.burnout_score ?? 0;
                   const level = scoreToLevel(score);
+                  const type = (h as any).type === 'burnout_assessment' ? 'Full Assessment' : 'Quick Check';
+                  const typeColor = (h as any).type === 'burnout_assessment' ? 'text-primary font-semibold' : 'text-muted-foreground';
                   return (
-                    <div key={idx} className="grid grid-cols-4 gap-2 items-center">
-                      <div>{new Date(h.timestamp).toLocaleString()}</div>
+                    <div key={idx} className="grid grid-cols-5 gap-2 items-center min-w-[600px]">
+                      <div className="text-xs">{new Date(h.timestamp).toLocaleDateString()} {new Date(h.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                      <div className={`text-xs ${typeColor}`}>{type}</div>
                       <div>{Math.round(score)}</div>
                       <div className={levelToColor(level).text}>{level}</div>
-                      <div className="truncate">{(h.result?.top_drivers || []).join(', ')}</div>
+                      <div className="truncate text-xs">{(h.result?.top_drivers || []).join(', ')}</div>
                     </div>
                   );
                 })}
