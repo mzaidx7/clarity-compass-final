@@ -62,7 +62,7 @@ export default function QuickRiskPage() {
   useEffect(() => {
     const loadHistory = async () => {
       try {
-        const result = await apiSafe.surveyHistory();
+        const result = await apiSafe.history();
         if (!result.error && result.data) {
           // Filter quick risk entries (not full assessments)
           const quickRisks = result.data.items
