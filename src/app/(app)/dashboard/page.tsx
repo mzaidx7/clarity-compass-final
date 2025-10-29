@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription }
 import { Button } from '@/components/ui/button';
 import { ArrowRight, HeartPulse, BrainCircuit, Activity, Info } from 'lucide-react';
 import { ChartContainer, ChartConfig } from '@/components/ui/chart';
-import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, Cell } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis, Cell } from 'recharts';
 import Gauge from '@/components/Gauge';
 import { cn } from '@/lib/utils';
 import { apiSafe } from '@/lib/api';
@@ -95,7 +95,7 @@ export default function DashboardPage() {
       if (quickChecks.length > 0) {
         const latest = quickChecks[quickChecks.length - 1];
         const score = latest.result?.burnout_score || 0;
-        const risk = latest.result?.risk_label || 'Unknown';
+        const risk = (latest.result as any)?.risk_label || 'Unknown';
         const date = new Date(latest.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         setLatestQuickCheck({ score, date, risk });
       }
@@ -281,8 +281,8 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   ) : (
-                  <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                    <BarChart accessibilityLayer data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: -10 }}>
+                  <ChartContainer config={chartConfig} className="h-[280px] w-full">
+                    <BarChart accessibilityLayer data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
                       <CartesianGrid vertical={false} stroke="hsl(var(--border) / 0.5)" />
                       <XAxis
                         dataKey="day"
@@ -290,19 +290,33 @@ export default function DashboardPage() {
                         tickMargin={10}
                         axisLine={false}
                         stroke='hsl(var(--muted-foreground))'
+                        fontSize={12}
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        stroke='hsl(var(--muted-foreground))'
+                        fontSize={12}
+                        domain={[0, 100]}
+                        ticks={[0, 25, 50, 75, 100]}
+                        width={40}
+                        label={{ value: 'Score', angle: -90, position: 'insideLeft', style: { fontSize: 12, fill: 'hsl(var(--muted-foreground))' } }}
                       />
                       <Tooltip
                         cursor={false}
                         content={({ active, payload }) => {
                           if (!active || !payload?.length) return null;
                           const p = payload[0]?.payload as any;
+                          const riskLevel = p.score >= 70 ? 'Severe' : p.score >= 50 ? 'High' : p.score >= 30 ? 'Moderate' : 'Low';
+                          const riskColor = p.score >= 70 ? 'text-red-500' : p.score >= 50 ? 'text-orange-500' : p.score >= 30 ? 'text-yellow-500' : 'text-green-500';
                           return (
-                            <div className="rounded-md border bg-popover p-2 text-popover-foreground shadow-md">
-                              <p className="text-xs text-muted-foreground">{p.day}</p>
-                              <p className="text-sm font-medium">Score: {p.score}</p>
-                              {p.type && <p className="text-xs text-muted-foreground">Type: {p.type}</p>}
+                            <div className="rounded-lg border-2 bg-background/95 backdrop-blur p-3 shadow-lg">
+                              <p className="text-sm font-semibold mb-1">{p.day}</p>
+                              <p className={`text-2xl font-bold ${riskColor}`}>{p.score}<span className="text-sm text-muted-foreground">/100</span></p>
+                              <p className="text-xs text-muted-foreground mt-1">{riskLevel} Risk</p>
+                              {p.type && <p className="text-[10px] text-muted-foreground mt-1">Type: {p.type}</p>}
                               {Array.isArray(p.drivers) && p.drivers.length > 0 && (
-                                <div className="mt-1 flex flex-wrap gap-1">
+                                <div className="mt-2 flex flex-wrap gap-1">
                                   {p.drivers.slice(0, 3).map((d: any, i: number) => (
                                     <span key={i} className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{typeof d === 'string' ? d : d?.feature ?? JSON.stringify(d)}</span>
                                   ))}
