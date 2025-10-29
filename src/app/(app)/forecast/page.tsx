@@ -135,6 +135,11 @@ export default function ForecastPage() {
           if (event.priority === 'high') weight *= 1.5;
           else if (event.priority === 'low') weight *= 0.7;
           
+          // Multiply by intensity/complexity
+          if (event.intensity === 'complex') weight *= 1.4;
+          else if (event.intensity === 'easy') weight *= 0.8;
+          // 'moderate' is default (multiply by 1.0)
+          
           weightedCount += weight;
         });
         

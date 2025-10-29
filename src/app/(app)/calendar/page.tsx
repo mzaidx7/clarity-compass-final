@@ -33,6 +33,12 @@ const PRIORITIES = [
   { value: 'high', label: 'High', weight: 2 },
 ];
 
+const INTENSITIES = [
+  { value: 'easy', label: 'Easy', weight: 1 },
+  { value: 'moderate', label: 'Moderate', weight: 1.5 },
+  { value: 'complex', label: 'Complex', weight: 2 },
+];
+
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -56,6 +62,7 @@ export default function CalendarPage() {
     end: '',
     description: '',
     priority: 'medium',
+    intensity: 'moderate',
   });
 
   useEffect(() => {
@@ -134,6 +141,7 @@ export default function CalendarPage() {
         end: '',
         description: '',
         priority: 'medium',
+        intensity: 'moderate',
       });
     }
     setEditingEvent(null);
@@ -150,6 +158,7 @@ export default function CalendarPage() {
       end: event.end || '',
       description: event.description || '',
       priority: event.priority || 'medium',
+      intensity: event.intensity || 'moderate',
     });
     setIsAddModalOpen(true);
   };
@@ -292,7 +301,11 @@ export default function CalendarPage() {
                   <Button variant="outline" size="icon" onClick={handleNextMonth}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
-                  <Button onClick={() => setCurrentDate(new Date())} variant="outline" size="sm">
+                  <Button onClick={() => {
+                    const today = new Date();
+                    setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1));
+                    setSelectedDate(today);
+                  }} variant="outline" size="sm">
                     Today
                   </Button>
                 </div>
@@ -445,6 +458,11 @@ export default function CalendarPage() {
                           <Badge className={cn("text-xs", getPriorityBadgeClass(event.priority))}>
                             {(event.priority || 'medium').toUpperCase()}
                           </Badge>
+                          {event.intensity && (
+                            <Badge variant="secondary" className="text-xs">
+                              {event.intensity.charAt(0).toUpperCase() + event.intensity.slice(1)}
+                            </Badge>
+                          )}
                         </div>
                         {event.description && (
                           <p className="text-xs text-muted-foreground line-clamp-2">{event.description}</p>
@@ -471,6 +489,91 @@ export default function CalendarPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* All Events List */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">All Upcoming Events</CardTitle>
+              <CardDescription className="text-xs">
+                Sorted by date and time
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 max-h-[400px] overflow-y-auto scrollbar-thin">
+              {events.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  No events scheduled
+                </p>
+              ) : (
+                events
+                  .sort((a, b) => {
+                    const dateCompare = a.date.localeCompare(b.date);
+                    if (dateCompare !== 0) return dateCompare;
+                    return (a.start || '').localeCompare(b.start || '');
+                  })
+                  .map(event => (
+                    <Card 
+                      key={event.id} 
+                      className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => {
+                        const eventDate = new Date(event.date + 'T00:00:00');
+                        setCurrentDate(new Date(eventDate.getFullYear(), eventDate.getMonth(), 1));
+                        setSelectedDate(eventDate);
+                      }}
+                    >
+                      <div className={cn("h-1", getEventTypeColor(event.type))} />
+                      <CardContent className="p-2 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs font-semibold truncate">{event.title}</h4>
+                            <p className="text-[10px] text-muted-foreground">
+                              {new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              {event.start && ` • ${event.start}`}
+                            </p>
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditEvent(event);
+                              }}
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteEvent(event.id);
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <Badge variant="outline" className="text-[9px] px-1 py-0">
+                            {event.type}
+                          </Badge>
+                          <Badge className={cn("text-[9px] px-1 py-0", getPriorityBadgeClass(event.priority))}>
+                            {(event.priority || 'medium')[0].toUpperCase()}
+                          </Badge>
+                          {event.intensity && (
+                            <Badge variant="secondary" className="text-[9px] px-1 py-0">
+                              {event.intensity[0].toUpperCase()}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+              )}
+            </CardContent>
+          </Card>
 
           {/* Legend */}
         <Card>
@@ -509,26 +612,26 @@ export default function CalendarPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="type">Type</Label>
-                <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                  <SelectTrigger id="type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EVENT_TYPES.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        <div className="flex items-center gap-2">
-                          <div className={cn("h-2 w-2 rounded-full", type.color)} />
-                          {type.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label htmlFor="type">Type</Label>
+              <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+                <SelectTrigger id="type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EVENT_TYPES.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
+                      <div className="flex items-center gap-2">
+                        <div className={cn("h-2 w-2 rounded-full", type.color)} />
+                        {type.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="priority">Priority</Label>
                 <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
@@ -539,6 +642,22 @@ export default function CalendarPage() {
                     {PRIORITIES.map(priority => (
                       <SelectItem key={priority.value} value={priority.value}>
                         {priority.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="intensity">Complexity</Label>
+                <Select value={formData.intensity} onValueChange={(value) => setFormData({ ...formData, intensity: value })}>
+                  <SelectTrigger id="intensity">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INTENSITIES.map(intensity => (
+                      <SelectItem key={intensity.value} value={intensity.value}>
+                        {intensity.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

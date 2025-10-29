@@ -87,6 +87,7 @@ class CalendarEvent(BaseModel):
     end: str | None = None
     description: str | None = None
     priority: str = "medium"  # "low", "medium", "high"
+    intensity: str = "moderate"  # "easy", "moderate", "complex"
 
 class CalendarEventCreate(BaseModel):
     title: str
@@ -96,3 +97,4 @@ class CalendarEventCreate(BaseModel):
     end: str | None = None
     description: str | None = None
     priority: str = "medium"  # "low", "medium", "high"
+    intensity: str = "moderate"  # "easy", "moderate", "complex"
