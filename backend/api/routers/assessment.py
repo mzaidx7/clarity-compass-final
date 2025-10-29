@@ -9,8 +9,8 @@ from pydantic import BaseModel, Field
 
 from api.core.security import get_current_user
 from api.services.burnout_service import get_burnout_service
-from api.services.firebase_client import get_firestore_client
-from api.services.local_store import get_local_store
+from api.services.firebase_client import save_survey
+from api.services.local_store import append_survey_history
 from api.core.config import get_settings
 
 router = APIRouter(prefix="/assessment", tags=["assessment"])
@@ -134,32 +134,32 @@ async def submit_assessment(
         # Get prediction
         result = service.predict(request.responses)
         
-        # Prepare data to save
+        # Prepare data to save to history
+        from datetime import datetime, timezone
         data_to_save = {
-            'user_id': user_id,
-            'timestamp': None,  # Will be set by save function
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'type': 'burnout_assessment',
             'responses': request.responses,
             'result': {
                 'burnout_score': result['burnout_score'],
                 'risk_level': result['risk_level'],
-                'top_risk_factors': [rf.dict() if hasattr(rf, 'dict') else rf for rf in result['top_risk_factors']],
+                'top_risk_factors': result['top_risk_factors'],
                 'using_model': result['using_model']
             }
         }
         
-        # Save to appropriate store
-        if settings.USE_FIRESTORE:
-            client = get_firestore_client()
-            saved_data = client.save_survey_response(user_id, data_to_save)
-        else:
-            store = get_local_store()
-            saved_data = store.save_survey(user_id, data_to_save)
+        # Save to local history store
+        append_survey_history(user_id, data_to_save)
+        
+        # Also save to Firestore if configured
+        try:
+            save_survey(user_id, {'latest_assessment': data_to_save})
+        except Exception:
+            pass  # Firestore is optional
         
         return {
             'success': True,
-            'result': result,
-            'saved': saved_data
+            'result': result
         }
         
     except Exception as e:
