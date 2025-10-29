@@ -84,7 +84,7 @@ export default function StatusPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Model Status</CardTitle>
-                            <CardDescription>Prediction model details</CardDescription>
+                            <CardDescription>ML burnout prediction model (v2)</CardDescription>
                         </CardHeader>
                 <CardContent>
                     {loading ? (
@@ -95,9 +95,23 @@ export default function StatusPage() {
                       </div>
                     ) : (
                                 <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between"><span>Using:</span> <span className="font-medium">{modelStatus?.using}</span></div>
+                                    <div className="flex justify-between">
+                                        <span>Model Type:</span> 
+                                        <Badge variant="default" className="bg-primary/20 text-primary border-primary/30">
+                                            {modelStatus?.using === 'ml_model' ? 'ML Model' : 'Heuristic'}
+                                        </Badge>
+                                    </div>
+                                    {modelStatus?.model_version && (
+                                        <div className="flex justify-between"><span>Version:</span> <span className="font-medium">{modelStatus.model_version}</span></div>
+                                    )}
+                                    {modelStatus?.accuracy && (
+                                        <div className="flex justify-between"><span>Accuracy:</span> <Badge variant="secondary" className="bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30">{modelStatus.accuracy}</Badge></div>
+                                    )}
                                     <div className="flex justify-between items-center"><span>Model Loaded:</span> <StatusIndicator status={modelStatus?.model_loaded || false} /></div>
                                     <div className="flex justify-between items-center"><span>Scaler Loaded:</span> <StatusIndicator status={modelStatus?.scaler_loaded || false} /></div>
+                                    {modelStatus?.features && (
+                                        <div className="flex justify-between"><span>Features:</span> <span className="font-medium">{typeof modelStatus.features === 'number' ? modelStatus.features : modelStatus.features.length}</span></div>
+                                    )}
                                 </div>
                             )}
                         </CardContent>
@@ -106,12 +120,31 @@ export default function StatusPage() {
 
                  <Card>
                     <CardHeader>
-                        <CardTitle>Model Features</CardTitle>
+                        <CardTitle>Model Description</CardTitle>
+                        <CardDescription>Technical details about the burnout prediction model</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {loading ? <Skeleton className="h-16 w-full" /> : (
-                            <div className="flex flex-wrap gap-2">
-                                {modelStatus?.features.map(f => <Badge key={f} variant="secondary">{f}</Badge>)}
+                            <div className="space-y-3">
+                                {modelStatus?.description && (
+                                    <p className="text-sm text-muted-foreground">{modelStatus.description}</p>
+                                )}
+                                {modelStatus?.features && typeof modelStatus.features === 'number' && (
+                                    <div className="rounded-lg bg-muted/50 p-3">
+                                        <p className="text-xs font-medium text-muted-foreground mb-1">Feature Engineering</p>
+                                        <p className="text-sm">
+                                            <span className="font-semibold">{modelStatus.features} polynomial features</span> generated from 19 base inputs
+                                        </p>
+                                    </div>
+                                )}
+                                {modelStatus?.model_version === 'v2' && (
+                                    <div className="rounded-lg bg-primary/10 border border-primary/20 p-3">
+                                        <p className="text-xs font-semibold text-primary mb-1">🎯 Production Model</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Trained on 1200 student burnout records with Random Forest + polynomial feature expansion for high accuracy predictions.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </CardContent>

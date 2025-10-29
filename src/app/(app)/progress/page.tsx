@@ -18,6 +18,7 @@ type HistoryEntry = {
 export default function ProgressPage() {
   const { user } = useAuth();
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,11 +27,19 @@ export default function ProgressPage() {
     setError(null);
     try {
       const { apiSafe } = await import('@/lib/api');
-      const res = await apiSafe.history(30);
-      if (res.error) {
-        setError(res.error);
+      const [historyRes, calendarRes] = await Promise.all([
+        apiSafe.history(50), // Get more history for better achievement tracking
+        apiSafe.calendarList()
+      ]);
+      
+      if (historyRes.error) {
+        setError(historyRes.error);
       } else {
-        setHistory(res.data?.items as any || []);
+        setHistory(historyRes.data?.items as any || []);
+      }
+
+      if (!calendarRes.error && calendarRes.data) {
+        setCalendarEvents(calendarRes.data);
       }
     } catch (e: any) {
       setError(e?.message || 'Failed to load history');

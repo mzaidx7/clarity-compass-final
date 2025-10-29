@@ -56,8 +56,11 @@ export type ModelStatusResponse = {
   using: string;
   model_loaded: boolean;
   scaler_loaded: boolean;
-  features: string[];
-  artifact_flags: Record<string, boolean>;
+  model_version?: string;
+  accuracy?: string;
+  features?: number | string[];  // Can be count or array
+  description?: string;
+  artifact_flags?: Record<string, boolean>;
 };
 
 export type DevLoginRequest = {
