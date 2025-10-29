@@ -321,73 +321,81 @@ export default function QuickRiskPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
-              <ChartContainer config={{
+            <ChartContainer 
+              config={{
                 score: {
                   label: "Quick Risk Score",
                   color: "hsl(var(--primary))",
                 },
-              }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={quickRiskHistory.slice().reverse().map((item, idx) => ({
+              }}
+              className="h-64 w-full"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart 
+                  data={quickRiskHistory.slice().reverse().map((item, idx) => ({
                     index: idx + 1,
                     score: item.score,
                     label: new Date(item.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                  }))} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="gradientScore" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                    <XAxis 
-                      dataKey="label" 
-                      stroke="hsl(var(--muted-foreground))"
-                      fontSize={11}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      stroke="hsl(var(--muted-foreground))"
-                      fontSize={11}
-                      domain={[0, 100]}
-                      tickLine={false}
-                      ticks={[0, 25, 50, 75, 100]}
-                    />
-                    <RechartsTooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          const riskLevel = data.score >= 70 ? 'Severe' : data.score >= 50 ? 'High' : data.score >= 30 ? 'Moderate' : 'Low';
-                          const riskColor = data.score >= 70 ? 'text-red-500' : data.score >= 50 ? 'text-orange-500' : data.score >= 30 ? 'text-yellow-500' : 'text-green-500';
-                          return (
-                            <div className="bg-background/95 backdrop-blur border border-border rounded-lg shadow-lg p-3">
-                              <p className="text-sm font-medium mb-1">{data.label}</p>
-                              <p className={`text-xl font-bold ${riskColor}`}>
-                                {Math.round(data.score)}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {riskLevel} Risk
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="score"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2}
-                      fill="url(#gradientScore)"
-                      dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 3 }}
-                      activeDot={{ r: 5, strokeWidth: 0 }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </div>
+                  }))} 
+                  margin={{ top: 10, right: 20, left: -10, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="gradientScore" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
+                  <XAxis 
+                    dataKey="label" 
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={10}
+                  />
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={11}
+                    domain={[0, 100]}
+                    tickLine={false}
+                    axisLine={false}
+                    ticks={[0, 25, 50, 75, 100]}
+                    width={35}
+                  />
+                  <RechartsTooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        const riskLevel = data.score >= 70 ? 'Severe' : data.score >= 50 ? 'High' : data.score >= 30 ? 'Moderate' : 'Low';
+                        const riskColor = data.score >= 70 ? 'text-red-500' : data.score >= 50 ? 'text-orange-500' : data.score >= 30 ? 'text-yellow-500' : 'text-green-500';
+                        return (
+                          <div className="bg-background/95 backdrop-blur border-2 border-border rounded-lg shadow-lg p-3">
+                            <p className="text-sm font-medium mb-1">{data.label}</p>
+                            <p className={`text-xl font-bold ${riskColor}`}>
+                              {Math.round(data.score)}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {riskLevel} Risk
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="score"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    fill="url(#gradientScore)"
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartContainer>
             <div className="mt-4 p-3 bg-muted/30 rounded-lg">
               <p className="text-xs text-muted-foreground">
                 <strong>Note:</strong> Quick checks are great for daily monitoring, but they're estimates based on 7 simple inputs. 
