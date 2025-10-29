@@ -23,13 +23,13 @@ import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip as Recharts
 import { ChartContainer } from '@/components/ui/chart';
 
 const quickRiskSchema = z.object({
-  sleep_hours: z.coerce.number().min(0).max(24),
-  study_hours: z.coerce.number().min(0).max(24),
-  assignments_due: z.coerce.number().int().min(0),
-  exams_within_7d: z.coerce.number().int().min(0),
-  stress_level: z.coerce.number().int().min(1).max(5),
-  social_support: z.coerce.number().int().min(1).max(5),
-  physical_activity: z.coerce.number().min(0).max(20),
+  sleep_hours: z.coerce.number().min(0, "Must be at least 0").max(24, "Cannot exceed 24 hours"),
+  study_hours: z.coerce.number().min(0, "Must be at least 0").max(24, "Cannot exceed 24 hours"),
+  assignments_due: z.coerce.number().int().min(0, "Must be at least 0").max(20, "Cannot exceed 20"),
+  exams_within_7d: z.coerce.number().int().min(0, "Must be at least 0").max(10, "Cannot exceed 10"),
+  stress_level: z.coerce.number().int().min(1, "Must be between 1-5").max(5, "Must be between 1-5"),
+  social_support: z.coerce.number().int().min(1, "Must be between 1-5").max(5, "Must be between 1-5"),
+  physical_activity: z.coerce.number().min(0, "Must be at least 0").max(20, "Cannot exceed 20 hours/week"),
 });
 
 type QuickRiskFormValues = z.infer<typeof quickRiskSchema>;
@@ -185,13 +185,13 @@ export default function QuickRiskPage() {
                   </TooltipTrigger>
                   <TooltipContent className="max-w-sm p-3">
                     <div className="space-y-1.5">
-                      <p className="text-xs"><strong>Sleep hours:</strong> Avg. hours per night (last 24h)</p>
-                      <p className="text-xs"><strong>Study hours:</strong> Active study time per day</p>
-                      <p className="text-xs"><strong>Assignments due:</strong> Due in next 7 days</p>
-                      <p className="text-xs"><strong>Exams within 7d:</strong> Scheduled in next week</p>
-                      <p className="text-xs"><strong>Stress level:</strong> Overall stress (1=low, 5=high)</p>
-                      <p className="text-xs"><strong>Social support:</strong> Quality of support (1=poor, 5=excellent)</p>
-                      <p className="text-xs"><strong>Physical activity:</strong> Hours of exercise per week</p>
+                      <p className="text-xs"><strong>Sleep hours:</strong> Avg. hours per night, 0-24 (last 24h)</p>
+                      <p className="text-xs"><strong>Study hours:</strong> Active study time per day, 0-24</p>
+                      <p className="text-xs"><strong>Assignments due:</strong> Due in next 7 days, 0-20</p>
+                      <p className="text-xs"><strong>Exams within 7d:</strong> Scheduled in next week, 0-10</p>
+                      <p className="text-xs"><strong>Stress level:</strong> Overall stress, 1-5 (1=low, 5=high)</p>
+                      <p className="text-xs"><strong>Social support:</strong> Quality of support, 1-5 (1=poor, 5=excellent)</p>
+                      <p className="text-xs"><strong>Physical activity:</strong> Hours of exercise per week, 0-20</p>
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -202,22 +202,145 @@ export default function QuickRiskPage() {
             <FormProvider {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
-                    {Object.keys(form.getValues()).map((key) => {
-                        const fieldName = key as keyof QuickRiskFormValues;
-                        return (
-                            <div key={fieldName} className="space-y-2">
-                                <Label htmlFor={fieldName} className="capitalize">{fieldName.replace(/_/g, ' ')}</Label>
-                                <Controller
-                                    name={fieldName}
-                                    control={form.control}
-                                    render={({ field }) => (
-                                        <Input id={fieldName} type="number" {...field} />
-                                    )}
+                    {/* Sleep Hours */}
+                    <div className="space-y-2">
+                        <Label htmlFor="sleep_hours">Sleep Hours</Label>
+                        <Controller
+                            name="sleep_hours"
+                            control={form.control}
+                            render={({ field }) => (
+                                <Input 
+                                    id="sleep_hours" 
+                                    type="number" 
+                                    min="0" 
+                                    max="24" 
+                                    step="0.5"
+                                    {...field} 
                                 />
-                                {form.formState.errors[fieldName] && <p className="text-sm text-destructive">{form.formState.errors[fieldName]?.message}</p>}
-                            </div>
-                        )
-                    })}
+                            )}
+                        />
+                        {form.formState.errors.sleep_hours && <p className="text-sm text-destructive">{form.formState.errors.sleep_hours?.message}</p>}
+                    </div>
+
+                    {/* Study Hours */}
+                    <div className="space-y-2">
+                        <Label htmlFor="study_hours">Study Hours</Label>
+                        <Controller
+                            name="study_hours"
+                            control={form.control}
+                            render={({ field }) => (
+                                <Input 
+                                    id="study_hours" 
+                                    type="number" 
+                                    min="0" 
+                                    max="24" 
+                                    step="0.5"
+                                    {...field} 
+                                />
+                            )}
+                        />
+                        {form.formState.errors.study_hours && <p className="text-sm text-destructive">{form.formState.errors.study_hours?.message}</p>}
+                    </div>
+
+                    {/* Assignments Due */}
+                    <div className="space-y-2">
+                        <Label htmlFor="assignments_due">Assignments Due</Label>
+                        <Controller
+                            name="assignments_due"
+                            control={form.control}
+                            render={({ field }) => (
+                                <Input 
+                                    id="assignments_due" 
+                                    type="number" 
+                                    min="0" 
+                                    max="20" 
+                                    step="1"
+                                    {...field} 
+                                />
+                            )}
+                        />
+                        {form.formState.errors.assignments_due && <p className="text-sm text-destructive">{form.formState.errors.assignments_due?.message}</p>}
+                    </div>
+
+                    {/* Exams Within 7d */}
+                    <div className="space-y-2">
+                        <Label htmlFor="exams_within_7d">Exams Within 7d</Label>
+                        <Controller
+                            name="exams_within_7d"
+                            control={form.control}
+                            render={({ field }) => (
+                                <Input 
+                                    id="exams_within_7d" 
+                                    type="number" 
+                                    min="0" 
+                                    max="10" 
+                                    step="1"
+                                    {...field} 
+                                />
+                            )}
+                        />
+                        {form.formState.errors.exams_within_7d && <p className="text-sm text-destructive">{form.formState.errors.exams_within_7d?.message}</p>}
+                    </div>
+
+                    {/* Stress Level */}
+                    <div className="space-y-2">
+                        <Label htmlFor="stress_level">Stress Level (1-5)</Label>
+                        <Controller
+                            name="stress_level"
+                            control={form.control}
+                            render={({ field }) => (
+                                <Input 
+                                    id="stress_level" 
+                                    type="number" 
+                                    min="1" 
+                                    max="5" 
+                                    step="1"
+                                    {...field} 
+                                />
+                            )}
+                        />
+                        {form.formState.errors.stress_level && <p className="text-sm text-destructive">{form.formState.errors.stress_level?.message}</p>}
+                    </div>
+
+                    {/* Social Support */}
+                    <div className="space-y-2">
+                        <Label htmlFor="social_support">Social Support (1-5)</Label>
+                        <Controller
+                            name="social_support"
+                            control={form.control}
+                            render={({ field }) => (
+                                <Input 
+                                    id="social_support" 
+                                    type="number" 
+                                    min="1" 
+                                    max="5" 
+                                    step="1"
+                                    {...field} 
+                                />
+                            )}
+                        />
+                        {form.formState.errors.social_support && <p className="text-sm text-destructive">{form.formState.errors.social_support?.message}</p>}
+                    </div>
+
+                    {/* Physical Activity */}
+                    <div className="space-y-2">
+                        <Label htmlFor="physical_activity">Physical Activity (hrs/week)</Label>
+                        <Controller
+                            name="physical_activity"
+                            control={form.control}
+                            render={({ field }) => (
+                                <Input 
+                                    id="physical_activity" 
+                                    type="number" 
+                                    min="0" 
+                                    max="20" 
+                                    step="0.5"
+                                    {...field} 
+                                />
+                            )}
+                        />
+                        {form.formState.errors.physical_activity && <p className="text-sm text-destructive">{form.formState.errors.physical_activity?.message}</p>}
+                    </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
