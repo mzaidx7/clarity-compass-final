@@ -100,8 +100,10 @@ export type CalendarMonthDaysResponse = { days: { date: string; count: number }[
 
 export type SurveyHistoryItem = {
   timestamp: string;
-  input: SurveyRequest;
-  result: PredictionResponse | null;
+  type?: string; // 'burnout_assessment' or undefined for legacy
+  input?: SurveyRequest; // Optional for assessment type
+  responses?: Record<string, number>; // For assessment type
+  result: PredictionResponse | AssessmentResponse | null;
   fused?: FusedPredictResponse | null;
 };
 
