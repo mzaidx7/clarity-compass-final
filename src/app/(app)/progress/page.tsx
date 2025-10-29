@@ -44,10 +44,24 @@ export default function ProgressPage() {
   }, []);
 
   const chartData = useMemo(() => {
+    // All scores chart (includes both quick checks and full assessments)
     return (history || []).slice(-20).map(h => ({
       time: new Date(h.timestamp).toLocaleDateString(),
       score: h.result?.burnout_score ?? null,
+      type: (h as any).type === 'burnout_assessment' ? 'Full' : 'Quick'
     })).filter(d => d.score !== null);
+  }, [history]);
+
+  const quickCheckData = useMemo(() => {
+    // Only quick checks (excluding full assessments)
+    return (history || [])
+      .filter(h => !(h as any).type || (h as any).type !== 'burnout_assessment')
+      .filter(h => h.result?.burnout_score != null)
+      .slice(-14) // Last 14 quick checks
+      .map(h => ({
+        time: new Date(h.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        score: h.result?.burnout_score ?? null,
+      }));
   }, [history]);
 
   const chartConfig = {
@@ -144,6 +158,50 @@ export default function ProgressPage() {
           )}
         </CardContent>
       </Card>
+      
+      {/* Daily Quick Checks Trend */}
+      {quickCheckData.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Daily Quick Checks</CardTitle>
+            <CardDescription>
+              Your last {quickCheckData.length} quick risk assessments - for daily monitoring only
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Skeleton className="h-[220px] w-full" />
+            ) : (
+              <ChartContainer config={chartConfig} className="min-h-[220px] w-full">
+                <LineChart data={quickCheckData}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="time" tickLine={false} axisLine={false} tickMargin={8} />
+                  <YAxis domain={[0, 100]} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="hsl(var(--chart-2))" 
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={(props: any) => {
+                      const { cx, cy, payload, index } = props;
+                      const color = getScoreColor(payload.score || 0);
+                      return <circle key={`quick-dot-${index}`} cx={cx} cy={cy} r={3} fill={color} stroke="white" strokeWidth={1.5} />;
+                    }} 
+                  />
+                </LineChart>
+              </ChartContainer>
+            )}
+            <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                <strong>Note:</strong> Quick checks are estimates for daily tracking. Your official burnout score comes from the Full Burnout Assessment (visible in "Recent Scores" above).
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <Card>
         <CardHeader>
           <CardTitle>History Details</CardTitle>
