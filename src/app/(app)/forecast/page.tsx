@@ -8,18 +8,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, AlertCircle, TrendingUp, Calendar, Sparkles, Activity } from 'lucide-react';
+import { Loader2, AlertCircle, TrendingUp, Calendar, Sparkles, Activity, Edit3, Info } from 'lucide-react';
 import { api, apiSafe } from '@/lib/api';
 import type { ForecastResponse, ForecastRequest } from '@/lib/types';
 import { ChartContainer, ChartConfig } from "@/components/ui/chart";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Line, LineChart, ResponsiveContainer } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Line, LineChart, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
+// Flexible schema that allows any number of days (1-14)
 const forecastSchema = z.object({
-  last14: z.array(z.number().min(0).max(100)).length(14, "Must have 14 values"),
+  last14: z.array(z.number().min(0).max(100)).min(1).max(14),
   deadlines_next7: z.array(z.number().min(0).max(10)).length(7, "Must have 7 values"),
 });
 
@@ -37,11 +39,13 @@ export default function ForecastPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'manual' | 'auto'>('manual');
 
+  const [daysCount, setDaysCount] = useState(14); // Track how many historical days we have
+
   const form = useForm<ForecastFormValues>({
     resolver: zodResolver(forecastSchema),
     defaultValues: {
-        last14: [50,52,55,53,56,58,60,62,65,63,66,68,70,72],
-        deadlines_next7: [0,1,0,2,0,1,0],
+        last14: Array(14).fill(35),
+        deadlines_next7: Array(7).fill(0),
     },
   });
 
@@ -50,7 +54,16 @@ export default function ForecastPage() {
     setError(null);
     setPrediction(null);
     try {
-      const result = await api.forecast(data);
+      // Pad last14 to exactly 14 if less than 14
+      const paddedLast14 = [...data.last14];
+      while (paddedLast14.length < 14) {
+        paddedLast14.unshift(paddedLast14[0] || 0); // Pad front with first value or 0
+      }
+      
+      const result = await api.forecast({
+        last14: paddedLast14,
+        deadlines_next7: data.deadlines_next7,
+      });
       setPrediction(result);
     } catch (e) {
       setError("An error occurred while fetching the forecast.");
@@ -59,7 +72,7 @@ export default function ForecastPage() {
     }
   };
 
-  // Enhanced Use My Data with better calendar integration
+  // Enhanced Use My Data with flexible history length
   const useMyData = async () => {
     setLoadingData(true);
     setActiveTab('auto');
@@ -67,7 +80,7 @@ export default function ForecastPage() {
       const hist = await apiSafe.history(28);
       const items = hist.data?.items || [];
       
-      // Enhanced score prioritization: Assessment > Fused > Quick Risk
+      // Enhanced score prioritization: Full Assessment > Quick Risk
       const scores = items
         .map(it => {
           // Check for new burnout assessment
@@ -84,11 +97,13 @@ export default function ForecastPage() {
         })
         .filter((n): n is number => n !== null && !Number.isNaN(n));
       
-      // Fill last 14 days (reverse chronological)
-      const last14 = Array(14).fill(0);
-      for (let i = 0; i < 14; i++) {
-        last14[13 - i] = scores[scores.length - 1 - i] ?? 0;
-      }
+      // Use available scores (1 to 14 days)
+      const availableScores = scores.slice(Math.max(0, scores.length - 14)).reverse();
+      const actualDays = availableScores.length || 1;
+      setDaysCount(actualDays);
+      
+      // If we have scores, use them; otherwise use a neutral baseline
+      const last14 = availableScores.length > 0 ? availableScores : [35];
       
       // Enhanced calendar-based deadline calculation with priority weighting
       const deadlines = Array(7).fill(0);
@@ -175,74 +190,121 @@ export default function ForecastPage() {
         {/* Input Sidebar */}
         <div className="space-y-4">
           <Card className="card-gradient dark:glow">
-            <CardHeader>
+          <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Activity className="h-5 w-5" />
                 Your Inputs
               </CardTitle>
-              <CardDescription>Provide data for the last 14 days and the next 7 days.</CardDescription>
-            </CardHeader>
+            <CardDescription>Provide data for the last 14 days and the next 7 days.</CardDescription>
+          </CardHeader>
             <CardContent className="space-y-4">
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="manual">Manual</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="manual">Manual</TabsTrigger>
                   <TabsTrigger value="auto">Use My Data</TabsTrigger>
-                </TabsList>
+                  </TabsList>
 
-                <TabsContent value="manual" className="mt-4 space-y-4">
+                <TabsContent value="manual" className="mt-4 space-y-6">
                   <FormProvider {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      {/* Last 14 Days */}
-                      <div>
-                        <Label className="text-sm font-medium">Last 14 Days Scores (0-100)</Label>
-                        <div className="grid grid-cols-7 gap-1 mt-2">
-                          {Array.from({ length: 14 }).map((_, i) => (
-                            <Controller
-                              key={i}
-                              name={`last14.${i}`}
-                              control={form.control}
-                              render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  min={0}
-                                  max={100}
-                                  className="h-10 text-xs text-center p-1"
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
-                                />
-                              )}
-                            />
-                          ))}
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      {/* Last 14 Days - Sleek scroll area */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-semibold">Past Burnout Scores (0-100)</Label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Edit3 className="h-4 w-4 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs max-w-xs">Enter your burnout scores from the last 1-14 days. Scroll right for more.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="relative">
+                          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                        {Array.from({ length: 14 }).map((_, i) => (
+                              <Controller
+                                key={i}
+                                name={`last14.${i}`}
+                                control={form.control}
+                                render={({ field }) => (
+                                  <div className="flex flex-col items-center gap-2 min-w-[60px]">
+                                    <span className="text-xs text-muted-foreground">Day {i + 1}</span>
+                                    <Input
+                                      {...field}
+                                      type="number"
+                                      min={0}
+                                      max={100}
+                                      className="h-12 text-center text-base font-medium"
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                    />
+                                  </div>
+                                )}
+                              />
+                            ))}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Next 7 Days Deadlines */}
-                      <div>
-                        <Label className="text-sm font-medium">Deadlines Next 7 Days (0-10)</Label>
-                        <div className="grid grid-cols-7 gap-1 mt-2">
-                          {Array.from({ length: 7 }).map((_, i) => (
-                            <Controller
-                              key={i}
-                              name={`deadlines_next7.${i}`}
-                              control={form.control}
-                              render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  min={0}
-                                  max={10}
-                                  className="h-10 text-xs text-center p-1"
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
-                                />
-                              )}
-                            />
-                          ))}
+                      {/* Next 7 Days Deadlines - Modern layout */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-semibold">Upcoming Deadlines (0-10)</Label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Calendar className="h-4 w-4 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs max-w-xs">Number of exams, assignments, or major tasks due each day</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="grid grid-cols-7 gap-2">
+                          {Array.from({ length: 7 }).map((_, i) => {
+                            const dayDate = new Date();
+                            dayDate.setDate(dayDate.getDate() + i);
+                            const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'short' });
+                            
+                            return (
+                              <Controller
+                                key={i}
+                                name={`deadlines_next7.${i}`}
+                                control={form.control}
+                                render={({ field }) => (
+                                  <div className="flex flex-col items-center gap-2">
+                                    <span className="text-xs font-medium text-muted-foreground">{dayName}</span>
+                                    <Input
+                                      {...field}
+                                      type="number"
+                                      min={0}
+                                      max={10}
+                                      className="h-12 text-center text-base font-medium"
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                    />
+                                  </div>
+                                )}
+                              />
+                            );
+                          })}
                         </div>
                       </div>
 
-                      <Button type="submit" className="w-full bg-gradient-primary" disabled={isLoading}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Forecast Risk
+                      <Button type="submit" className="w-full bg-gradient-primary shadow-md" size="lg" disabled={isLoading}>
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <TrendingUp className="mr-2 h-5 w-5" />
+                            Generate Forecast
+                          </>
+                        )}
                       </Button>
                     </form>
                   </FormProvider>
@@ -281,9 +343,9 @@ export default function ForecastPage() {
                         <Skeleton className="h-4 w-3/4" />
                       </div>
                     )}
-                  </div>
-                </TabsContent>
-              </Tabs>
+                    </div>
+                  </TabsContent>
+                </Tabs>
 
               {error && (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 text-destructive">
@@ -291,15 +353,25 @@ export default function ForecastPage() {
                   <p className="text-xs">{error}</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
 
-          {/* Note */}
-          <Card>
+          {/* Info Card */}
+          <Card className="bg-primary/5 border-primary/20">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">
-                <strong>Note:</strong> "Use My Data" prioritizes Full Assessment scores, followed by DASS-21, then Quick Risk assessments. Calendar events are weighted by type and priority.
-              </p>
+              <div className="flex items-start gap-2">
+                <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-xs font-medium">How It Works</p>
+                  <p className="text-xs text-muted-foreground">
+                    <strong>"Use My Data"</strong> pulls your recent Full Assessment scores and Quick Risk data. 
+                    Calendar events (exams, assignments, meetings) are automatically weighted by type and priority to forecast upcoming stress levels.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Works with <strong>1-14 days</strong> of history. More data = better predictions!
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -307,7 +379,7 @@ export default function ForecastPage() {
         {/* Results Area */}
         <div className="space-y-4">
           <Card className="card-gradient">
-            <CardHeader>
+          <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-xl flex items-center gap-2">
@@ -322,7 +394,7 @@ export default function ForecastPage() {
                   </Badge>
                 )}
               </div>
-            </CardHeader>
+          </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="space-y-4">
@@ -344,34 +416,59 @@ export default function ForecastPage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* Chart */}
-                  <div className="h-64">
+                  {/* Chart with proper tooltips */}
+                  <div className="h-72">
                     <ChartContainer config={chartConfig}>
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData}>
+                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                           <defs>
                             <linearGradient id="gradientPrediction" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.05} />
+                              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
+                              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                           <XAxis 
                             dataKey="day" 
                             stroke="hsl(var(--muted-foreground))"
-                            fontSize={12}
+                            fontSize={11}
+                            tickLine={false}
                           />
                           <YAxis 
                             stroke="hsl(var(--muted-foreground))"
-                            fontSize={12}
+                            fontSize={11}
                             domain={[0, 100]}
+                            tickLine={false}
+                            ticks={[0, 25, 50, 75, 100]}
+                          />
+                          <RechartsTooltip
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0].payload;
+                                const risk = getRiskLevel(data.prediction);
+                                return (
+                                  <div className="bg-background/95 backdrop-blur border border-border rounded-lg shadow-lg p-3">
+                                    <p className="text-sm font-medium mb-1">{data.dayLabel}</p>
+                                    <p className={cn("text-xl font-bold", risk.color)}>
+                                      {data.prediction}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {risk.label} Risk
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
                           />
                           <Area
                             type="monotone"
                             dataKey="prediction"
                             stroke="hsl(var(--primary))"
-                            strokeWidth={2}
+                            strokeWidth={3}
                             fill="url(#gradientPrediction)"
+                            dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                            activeDot={{ r: 6, strokeWidth: 0 }}
                           />
                         </AreaChart>
                       </ResponsiveContainer>
@@ -420,9 +517,9 @@ export default function ForecastPage() {
                     </Card>
                   )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
         </div>
       </div>
     </div>
