@@ -123,24 +123,30 @@ export default function ForecastPage() {
         let weightedCount = 0;
         
         dayEvents.forEach(event => {
+          // Base weight by event type (research-backed, unified across app)
           let weight = 1;
-          
-          // Weight by type
-          if (event.type === 'Exam') weight = 3;
-          else if (event.type === 'Assignment') weight = 2;
-          else if (event.type === 'Meeting/Presentation') weight = 1.5;
+          if (event.type === 'Exam') weight = 8;
+          else if (event.type === 'Assignment') weight = 5;
+          else if (event.type === 'Meeting/Presentation') weight = 3;
+          else if (event.type === 'Study Session') weight = -2; // Reduces stress
+          else if (event.type === 'Exercise/Break') weight = -3; // Reduces stress
+          else if (event.type === 'Sleep') weight = -1; // Slightly reduces stress
+          else if (event.type === 'Work Shift') weight = 4;
           else weight = 1;
           
           // Multiply by priority
-          if (event.priority === 'high') weight *= 1.5;
-          else if (event.priority === 'low') weight *= 0.7;
+          const priorityMultiplier = 
+            event.priority === 'high' ? 1.5 :
+            event.priority === 'low' ? 0.7 : 1.0;
           
-          // Multiply by intensity/complexity
-          if (event.intensity === 'complex') weight *= 1.4;
-          else if (event.intensity === 'easy') weight *= 0.8;
-          // 'moderate' is default (multiply by 1.0)
+          // Multiply by complexity/intensity
+          const complexityMultiplier = 
+            event.intensity === 'complex' ? 1.4 :
+            event.intensity === 'easy' ? 0.8 : 1.0;
           
-          weightedCount += weight;
+          // Calculate final stress contribution
+          const eventStress = weight * priorityMultiplier * complexityMultiplier;
+          weightedCount += eventStress;
         });
         
         deadlines[i] = Math.round(weightedCount);

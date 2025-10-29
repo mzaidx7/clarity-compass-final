@@ -18,25 +18,25 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const EVENT_TYPES = [
-  { value: 'Exam', label: 'Exam', color: 'event-exam', weight: 10 },
-  { value: 'Assignment', label: 'Assignment', color: 'event-assignment', weight: 7 },
-  { value: 'Study Session', label: 'Study Session', color: 'event-study', weight: 4 },
-  { value: 'Sleep', label: 'Sleep', color: 'event-sleep', weight: 2 },
-  { value: 'Exercise/Break', label: 'Exercise/Break', color: 'event-exercise', weight: 2 },
-  { value: 'Meeting/Presentation', label: 'Meeting/Presentation', color: 'event-meeting', weight: 6 },
-  { value: 'Work Shift', label: 'Work Shift', color: 'event-work', weight: 5 },
+  { value: 'Exam', label: 'Exam', color: 'event-exam', weight: 8 },
+  { value: 'Assignment', label: 'Assignment', color: 'event-assignment', weight: 5 },
+  { value: 'Study Session', label: 'Study Session', color: 'event-study', weight: -2 }, // Reduces stress
+  { value: 'Sleep', label: 'Sleep', color: 'event-sleep', weight: -1 }, // Reduces stress
+  { value: 'Exercise/Break', label: 'Exercise/Break', color: 'event-exercise', weight: -3 }, // Reduces stress
+  { value: 'Meeting/Presentation', label: 'Meeting/Presentation', color: 'event-meeting', weight: 3 },
+  { value: 'Work Shift', label: 'Work Shift', color: 'event-work', weight: 4 },
 ];
 
 const PRIORITIES = [
-  { value: 'low', label: 'Low', weight: 1 },
-  { value: 'medium', label: 'Medium', weight: 1.5 },
-  { value: 'high', label: 'High', weight: 2 },
+  { value: 'low', label: 'Low', weight: 0.7 },
+  { value: 'medium', label: 'Medium', weight: 1.0 },
+  { value: 'high', label: 'High', weight: 1.5 },
 ];
 
 const INTENSITIES = [
-  { value: 'easy', label: 'Easy', weight: 1 },
-  { value: 'moderate', label: 'Moderate', weight: 1.5 },
-  { value: 'complex', label: 'Complex', weight: 2 },
+  { value: 'easy', label: 'Easy', weight: 0.8 },
+  { value: 'moderate', label: 'Moderate', weight: 1.0 },
+  { value: 'complex', label: 'Complex', weight: 1.4 },
 ];
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

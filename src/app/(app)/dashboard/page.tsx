@@ -51,20 +51,40 @@ export default function DashboardPage() {
       const events = result.data;
       let stressPoints = 0;
       
-      // Count upcoming high-stress events
+      // Count upcoming events with unified weightage system
       for (const event of events) {
         const eventDate = new Date(event.date);
         if (eventDate >= today && eventDate <= next7Days) {
-          // Weight different event types
-          if (event.type === 'Exam') stressPoints += 10;
-          else if (event.type === 'Assignment') stressPoints += 7;
-          else if (event.type === 'Meeting/Presentation') stressPoints += 5;
-          else stressPoints += 2;
+          // Base weight by event type (research-backed)
+          let weight = 1;
+          if (event.type === 'Exam') weight = 8;
+          else if (event.type === 'Assignment') weight = 5;
+          else if (event.type === 'Meeting/Presentation') weight = 3;
+          else if (event.type === 'Study Session') weight = -2; // Reduces stress
+          else if (event.type === 'Exercise/Break') weight = -3; // Reduces stress
+          else if (event.type === 'Sleep') weight = -1; // Slightly reduces stress
+          else if (event.type === 'Work Shift') weight = 4;
+          else weight = 1;
+          
+          // Multiply by priority
+          const priorityMultiplier = 
+            event.priority === 'high' ? 1.5 :
+            event.priority === 'low' ? 0.7 : 1.0;
+          
+          // Multiply by complexity/intensity
+          const complexityMultiplier = 
+            event.intensity === 'complex' ? 1.4 :
+            event.intensity === 'easy' ? 0.8 : 1.0;
+          
+          // Calculate final stress contribution
+          const eventStress = weight * priorityMultiplier * complexityMultiplier;
+          stressPoints += eventStress;
         }
       }
       
-      // Cap calendar stress contribution at 20 points
-      return Math.min(stressPoints, 20);
+      // Round and cap at 25 points (can go negative for stress-reducing events)
+      stressPoints = Math.round(stressPoints);
+      return Math.max(-10, Math.min(25, stressPoints)); // Range: -10 to +25
     } catch (err) {
       console.error('Error calculating calendar stress:', err);
       return 0;
