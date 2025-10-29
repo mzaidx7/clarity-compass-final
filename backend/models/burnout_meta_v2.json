@@ -33,10 +33,10 @@
   "total_features": 190,
   "score_range": [0, 100],
   "risk_thresholds": {
-    "low": [0, 30],
-    "moderate": [30, 50],
-    "high": [50, 70],
-    "severe": [70, 100]
+    "low": [0, 35],
+    "moderate": [35, 55],
+    "high": [55, 75],
+    "severe": [75, 100]
   },
   "feature_importance": [
     {"feature": "self_esteem", "importance": 0.0736},

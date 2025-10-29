@@ -27,12 +27,12 @@ export function scoreToLevel(score: number): RiskLevel {
 export function levelToColor(level: RiskLevel) {
   switch (level) {
     case "Low":
-      return { text: "text-green-400", ring: "bg-green-500", bg: "bg-green-500" };
+      return { text: "text-green-400", ring: "bg-green-500", bg: "bg-green-500", glow: "142 76% 50%" };
     case "Moderate":
-      return { text: "text-yellow-400", ring: "bg-yellow-500", bg: "bg-yellow-500" };
+      return { text: "text-yellow-400", ring: "bg-yellow-500", bg: "bg-yellow-500", glow: "45 100% 62%" };
     case "High":
     default:
-      return { text: "text-red-400", ring: "bg-red-500", bg: "bg-red-500" };
+      return { text: "text-red-400", ring: "bg-red-500", bg: "bg-red-500", glow: "0 84% 60%" };
   }
 }
 

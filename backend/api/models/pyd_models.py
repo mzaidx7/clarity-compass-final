@@ -9,9 +9,10 @@ class SurveyRequest(BaseModel):
     study_hours: float = Field(ge=0, le=24, description="Hours of study per day")
     assignments_due: int = Field(ge=0, description="Number of assignments due soon")
     exams_within_7d: int = Field(ge=0, description="Number of exams in next 7 days")
-    stress_level: int = Field(ge=1, le=5, description="Overall stress level (1=low, 5=high)")
-    social_support: int = Field(ge=1, le=5, description="Social support quality (1=poor, 5=excellent)")
-    physical_activity: float = Field(ge=0, le=20, description="Hours of exercise per week")
+    # New fields with defaults for backward compatibility with old survey data
+    stress_level: int = Field(default=3, ge=1, le=5, description="Overall stress level (1=low, 5=high)")
+    social_support: int = Field(default=3, ge=1, le=5, description="Social support quality (1=poor, 5=excellent)")
+    physical_activity: float = Field(default=3.0, ge=0, le=20, description="Hours of exercise per week")
 
 class SurveySavedResponse(BaseModel):
     """Acknowledgement response for storing a survey payload."""

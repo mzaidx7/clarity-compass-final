@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const [latestScore, setLatestScore] = useState<number | null>(null);
   const [latestLevelText, setLatestLevelText] = useState<string>('');
   const [colorClass, setColorClass] = useState<string>('text-green-500');
+  const [glowColor, setGlowColor] = useState<string>('142 76% 50%'); // Default green
   const [chartData, setChartData] = useState<{ day: string; score: number; drivers?: string[]; hasData: boolean; type?: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,15 +125,19 @@ export default function DashboardPage() {
         
         setLatestScore(Math.round(fusedScore));
         const lvl = scoreToLevel(fusedScore);
+        const colors = levelToColor(lvl);
         setLatestLevelText(lvl);
-        setColorClass(levelToColor(lvl).text);
+        setColorClass(colors.text);
+        setGlowColor(colors.glow);
       } else {
         // No assessment data, just show calendar stress if any
         if (calStress > 0) {
           setLatestScore(Math.round(calStress));
           const lvl = scoreToLevel(calStress);
+          const colors = levelToColor(lvl);
           setLatestLevelText(lvl);
-          setColorClass(levelToColor(lvl).text);
+          setColorClass(colors.text);
+          setGlowColor(colors.glow);
         } else {
           setLatestScore(null);
         }
@@ -199,62 +204,75 @@ export default function DashboardPage() {
       {!error && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-            <Card className="card-gradient dark:glow flex flex-col items-center justify-center gap-6 p-8 text-center">
+            {/* Hero Gauge Section - No card wrapper for cleaner look */}
+            <div className="flex flex-col items-center justify-center gap-6 py-12 text-center">
               {isLoading ? (
                 <div className="space-y-4">
-                  <Skeleton className="h-48 w-48 rounded-full mx-auto" />
-                  <Skeleton className="h-4 w-32 mx-auto" />
-                  <Skeleton className="h-10 w-full max-w-xs mx-auto" />
+                  <Skeleton className="h-64 w-64 rounded-full mx-auto" />
+                  <Skeleton className="h-6 w-40 mx-auto" />
+                  <Skeleton className="h-12 w-full max-w-sm mx-auto" />
                 </div>
               ) : latestScore === null ? (
                 <>
-                  <p className="text-muted-foreground">No recent assessment yet. Take your first assessment.</p>
-                  <Button asChild className="w-full max-w-xs bg-gradient-primary">
-                    <Link href="/quick-risk">Take New Assessment <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                  <p className="text-lg text-muted-foreground mb-4">No recent assessment yet. Take your first assessment.</p>
+                  <Button asChild size="lg" className="bg-gradient-primary text-lg px-8 py-6">
+                    <Link href="/quick-risk">Take New Assessment <ArrowRight className="ml-2 h-5 w-5" /></Link>
                   </Button>
                 </>
               ) : (
                 <>
-                  <Gauge value={latestScore} colorClass={colorClass} glow size={220} />
-                  <div className='space-y-1'>
-                    <p className="text-sm text-muted-foreground">Current Level</p>
-                    <p className={cn('text-xl font-semibold', colorClass)}>{latestLevelText}</p>
+                  <Gauge value={latestScore} colorClass={colorClass} glow={true} glowColor={glowColor} size={280} />
+                  <div className='space-y-2'>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wider">Current Level</p>
+                    <p className={cn('text-3xl font-bold', colorClass)}>{latestLevelText}</p>
                   </div>
                   
                   {/* Score Breakdown */}
                   {calendarStress > 0 && (
-                    <div className="text-sm text-muted-foreground max-w-xs">
-                      <p className="font-medium mb-1">Score Breakdown:</p>
+                    <div className="text-sm text-muted-foreground max-w-xs bg-muted/30 rounded-lg p-4 backdrop-blur">
+                      <p className="font-semibold mb-2 text-foreground">Score Breakdown:</p>
                       <div className="flex justify-between">
                         <span>Base Assessment:</span>
-                        <span>{Math.round(latestScore - calendarStress)}</span>
+                        <span className="font-medium">{Math.round(latestScore - calendarStress)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Calendar Stress:</span>
-                        <span className="text-orange-500">+{calendarStress}</span>
+                        <span className="text-orange-500 font-medium">+{calendarStress}</span>
                       </div>
-                      <div className="flex justify-between border-t mt-1 pt-1 font-semibold">
+                      <div className="flex justify-between border-t border-border mt-2 pt-2 font-bold text-foreground">
                         <span>Total Score:</span>
                         <span>{latestScore}</span>
                       </div>
                     </div>
                   )}
                   
-                  <Button asChild className="w-full max-w-xs bg-gradient-primary">
-                    <Link href="/assessment">Take New Assessment <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                  <Button asChild size="lg" className="bg-gradient-primary text-lg px-8 py-6 mt-2">
+                    <Link href="/assessment">Take New Assessment <ArrowRight className="ml-2 h-5 w-5" /></Link>
                   </Button>
                 </>
               )}
-            </Card>
+            </div>
             
              <Card>
                 <CardHeader>
                   <CardTitle>Recent Assessments</CardTitle>
-                  <CardDescription>Your risk scores from the last 7 days (DASS-21 + Quick Risk).</CardDescription>
+                  <CardDescription>
+                    Your risk scores from the last 7 days. 
+                    {chartData.filter(d => d.hasData).length === 0 && !isLoading && (
+                      <span className="text-orange-500 font-medium"> No data yet - take an assessment to see your history!</span>
+                    )}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
                     <Skeleton className="h-[250px] w-full" />
+                  ) : chartData.filter(d => d.hasData).length === 0 ? (
+                    <div className="h-[250px] w-full flex flex-col items-center justify-center text-center gap-4">
+                      <p className="text-muted-foreground">No assessment data for the last 7 days.</p>
+                      <Button asChild variant="outline" size="sm">
+                        <Link href="/quick-risk">Take First Assessment</Link>
+                      </Button>
+                    </div>
                   ) : (
                   <ChartContainer config={chartConfig} className="h-[250px] w-full">
                     <BarChart accessibilityLayer data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: -10 }}>

@@ -9,10 +9,11 @@ type Props = {
   colorClass?: string; // e.g., text-red-500 (used for ring + number)
   size?: number; // px
   glow?: boolean;
+  glowColor?: string; // HSL color for glow (e.g., "142 76% 50%" for green)
   label?: string;
 };
 
-export function Gauge({ value, className, colorClass = 'text-green-500', size = 180, glow = true, label = 'Burnout Score' }: Props) {
+export function Gauge({ value, className, colorClass = 'text-green-500', size = 180, glow = true, glowColor, label = 'Burnout Score' }: Props) {
   // Memoize calculations to prevent unnecessary re-renders
   const { v, offset } = useMemo(() => {
     const clampedValue = Math.max(0, Math.min(100, value));
@@ -26,14 +27,17 @@ export function Gauge({ value, className, colorClass = 'text-green-500', size = 
   const circumference = 2 * Math.PI * radius;
 
   return (
-    <div className={cn('relative', glow && 'dark:glow', className)} style={{ width: size, height: size }}>
+    <div className={cn('relative', className)} style={{ width: size, height: size }}>
       <svg className="absolute inset-0" viewBox="0 0 120 120" aria-hidden>
-        {glow && (
+        {glow && glowColor && (
           <defs>
-            <filter id="gauge-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <filter id={`gauge-glow-${glowColor.replace(/\s/g, '')}`} x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+              <feFlood floodColor={`hsl(${glowColor})`} floodOpacity="0.6" result="color" />
+              <feComposite in="color" in2="blur" operator="in" result="glow" />
               <feMerge>
-                <feMergeNode in="blur" />
+                <feMergeNode in="glow" />
+                <feMergeNode in="glow" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
@@ -55,11 +59,21 @@ export function Gauge({ value, className, colorClass = 'text-green-500', size = 
           strokeLinecap="round"
           transform="rotate(-90 60 60)"
           style={{ transition: 'stroke-dashoffset 0.5s ease-out' }}
-          filter={glow ? 'url(#gauge-glow)' : undefined}
+          filter={glow && glowColor ? `url(#gauge-glow-${glowColor.replace(/\s/g, '')})` : undefined}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center select-none">
-        <span className={cn('text-5xl font-bold tabular-nums', glow && 'dark:text-glow', colorClass)}>{Math.round(v)}</span>
+        <span 
+          className={cn('text-5xl font-bold tabular-nums', colorClass)}
+          style={glow && glowColor ? {
+            textShadow: `
+              0 0 10px hsl(${glowColor} / 0.5),
+              0 0 20px hsl(${glowColor} / 0.3)
+            `
+          } : {}}
+        >
+          {Math.round(v)}
+        </span>
         <span className="text-xs text-muted-foreground font-medium">{label}</span>
       </div>
     </div>

@@ -11,8 +11,11 @@ from api.services.burnout_service import get_burnout_service
 
 app = FastAPI(title="Student Burnout API", version="0.1.0")
 
-origins_env = os.getenv("ALLOWED_ORIGINS", "*")
-allow_origins = ["*"] if origins_env.strip() == "*" else [o.strip() for o in origins_env.split(",") if o.strip()]
+# CORS Configuration
+origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:9003,http://localhost:3000,http://127.0.0.1:9003,http://127.0.0.1:3000")
+allow_origins = [o.strip() for o in origins_env.split(",") if o.strip()]
+
+print(f"[CORS] Allowed origins: {allow_origins}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,6 +23,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 app.include_router(auth.router)

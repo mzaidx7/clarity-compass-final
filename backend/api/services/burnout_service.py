@@ -98,6 +98,15 @@ class BurnoutService:
         for feature_name in feature_names:
             if feature_name in responses:
                 value = responses[feature_name]
+                
+                # Check if this question needs inversion (higher = better)
+                question_obj = next((q for q in self.survey_questions if q['id'] == feature_name), None)
+                needs_invert = question_obj.get('invert', False) if question_obj else False
+                
+                # Invert if needed (1->5, 2->4, 3->3, 4->2, 5->1)
+                if needs_invert and feature_name != 'mental_health_history':
+                    value = 6 - value  # For 1-5 scale
+                
                 # Normalize to 0-100 scale (assuming input is 1-5 or 0-1)
                 if feature_name == 'mental_health_history':
                     normalized = value * 100  # Binary 0/1 -> 0/100
@@ -164,6 +173,14 @@ class BurnoutService:
                 value = responses[feature_name]
                 importance = importance_map.get(feature_name, 0)
                 
+                # Check if this question needs inversion (higher = better)
+                question_obj = next((q for q in self.survey_questions if q['id'] == feature_name), None)
+                needs_invert = question_obj.get('invert', False) if question_obj else False
+                
+                # Invert if needed (1->5, 2->4, 3->3, 4->2, 5->1)
+                if needs_invert and feature_name != 'mental_health_history':
+                    value = 6 - value  # For 1-5 scale
+                
                 # Normalize value to 0-100 scale
                 if feature_name == 'mental_health_history':
                     normalized_value = value * 100
@@ -174,7 +191,6 @@ class BurnoutService:
                 risk_contribution = normalized_value * importance
                 
                 # Get human-readable name
-                question_obj = next((q for q in self.survey_questions if q['id'] == feature_name), None)
                 display_name = question_obj['question'].split('?')[0] if question_obj else feature_name
                 
                 risk_factors.append({

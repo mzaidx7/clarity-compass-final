@@ -12,11 +12,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, HelpCircle } from "lucide-react";
+import { AlertCircle, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, HelpCircle, Brain } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 import Gauge from "@/components/Gauge";
 import ErrorState from "@/components/ErrorState";
-import type { SurveyQuestion, AssessmentResponse } from "@/lib/types";
+import { levelToColor } from "@/lib/utils";
+import type { SurveyQuestion, AssessmentResponse, RiskLevel } from "@/lib/types";
 
 export default function AssessmentPage() {
   const router = useRouter();
@@ -130,81 +132,118 @@ export default function AssessmentPage() {
   }
 
   if (result) {
+    const riskColors = levelToColor(result.risk_level as RiskLevel);
+    
     return (
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Burnout Assessment Results</CardTitle>
+        <Card className="border-2">
+          <CardHeader className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Brain className="h-6 w-6 text-primary" />
+              <CardTitle className="text-2xl">Your Burnout Assessment Results</CardTitle>
+            </div>
             <CardDescription>
               Based on your responses, here's your comprehensive burnout risk analysis.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Gauge Display */}
-            <div className="flex justify-center">
+          <CardContent className="space-y-8">
+            {/* Gauge Display with dynamic color */}
+            <div className="flex justify-center py-6">
               <Gauge
                 value={result.burnout_score}
-                size={200}
-                strokeWidth={20}
+                size={240}
+                colorClass={riskColors.text}
+                glow={true}
+                glowColor={riskColors.glow}
                 label="Burnout Score"
               />
             </div>
 
-            {/* Risk Level */}
-            <div className="flex items-center justify-center gap-3">
+            {/* Risk Level Badge */}
+            <div className="flex items-center justify-center gap-4">
               {getRiskIcon(result.risk_level)}
               <div className="text-center">
-                <p className="text-sm text-muted-foreground">Risk Level</p>
-                <p className={`text-2xl font-bold capitalize ${getRiskColor(result.risk_level)}`}>
+                <p className="text-sm text-muted-foreground mb-1">Risk Level</p>
+                <Badge 
+                  variant="outline" 
+                  className={`text-xl px-4 py-2 capitalize ${getRiskColor(result.risk_level)} border-current`}
+                >
                   {result.risk_level}
-                </p>
+                </Badge>
               </div>
             </div>
 
             {/* Top Risk Factors */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Top Risk Factors</h3>
-              <div className="space-y-3">
+            <div className="bg-muted/30 p-6 rounded-lg border">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="h-5 w-5 text-destructive" />
+                <h3 className="text-lg font-bold">Top Risk Factors</h3>
+              </div>
+              <div className="space-y-4">
                 {result.top_risk_factors.map((factor, idx) => (
-                  <Card key={idx} className="p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium capitalize">{factor.factor}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {factor.value.toFixed(1)}% intensity
-                      </span>
+                  <div key={idx} className="bg-background p-4 rounded-lg border-2 space-y-2">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex items-start gap-2 flex-1">
+                        <Badge variant="secondary" className="mt-0.5 shrink-0">
+                          #{idx + 1}
+                        </Badge>
+                        <span className="font-semibold text-sm leading-relaxed">{factor.factor}</span>
+                      </div>
+                      <Badge variant="outline" className="shrink-0">
+                        {factor.value.toFixed(0)}%
+                      </Badge>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-muted rounded-full h-2.5">
                       <div
-                        className="bg-primary h-2 rounded-full"
-                        style={{ width: `${factor.risk_contribution}%` }}
+                        className={`h-2.5 rounded-full transition-all ${
+                          factor.risk_contribution > 60 ? 'bg-red-500' :
+                          factor.risk_contribution > 40 ? 'bg-yellow-500' :
+                          'bg-green-500'
+                        }`}
+                        style={{ width: `${Math.min(factor.risk_contribution, 100)}%` }}
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Contributes {factor.risk_contribution.toFixed(1)}% to overall risk
+                    <p className="text-xs text-muted-foreground">
+                      Contributing {factor.risk_contribution.toFixed(1)}% to your overall burnout score
                     </p>
-                  </Card>
+                  </div>
                 ))}
               </div>
             </div>
 
             {/* Model Info */}
-            <Alert>
-              <AlertDescription className="text-sm">
-                <strong>Analysis Details:</strong><br />
-                • ML Model Accuracy: {(result.model_confidence * 100).toFixed(1)}% (R² = {result.model_confidence.toFixed(3)})<br />
-                • Questions Analyzed: {questions.length} comprehensive factors<br />
-                • Feature Interactions: Advanced polynomial analysis<br />
-                • Prediction Type: {result.using_model ? 'ML-Powered' : 'Heuristic'}
+            <Alert className="bg-primary/5 border-primary/20">
+              <Brain className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm space-y-1">
+                <p className="font-semibold text-primary mb-2">AI Analysis Details</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-muted-foreground">Model Accuracy:</span>
+                    <p className="font-medium">{(result.model_confidence * 100).toFixed(1)}% (R² = {result.model_confidence.toFixed(3)})</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Analysis Type:</span>
+                    <p className="font-medium">{result.using_model ? 'Machine Learning' : 'Heuristic'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Factors Analyzed:</span>
+                    <p className="font-medium">{questions.length} comprehensive dimensions</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Feature Processing:</span>
+                    <p className="font-medium">Polynomial Interactions</p>
+                  </div>
+                </div>
               </AlertDescription>
             </Alert>
 
             {/* Actions */}
-            <div className="flex gap-3">
-              <Button onClick={() => router.push('/dashboard')} className="flex-1">
+            <div className="flex gap-3 pt-4">
+              <Button onClick={() => router.push('/dashboard')} className="flex-1 shadow-md" size="lg">
                 View Dashboard
               </Button>
-              <Button onClick={() => setResult(null)} variant="outline" className="flex-1">
-                Take Again
+              <Button onClick={() => setResult(null)} variant="outline" className="flex-1" size="lg">
+                Retake Assessment
               </Button>
             </div>
           </CardContent>
@@ -215,14 +254,20 @@ export default function AssessmentPage() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Comprehensive Burnout Assessment</CardTitle>
-          <CardDescription>
+      <Card className="border-2">
+        <CardHeader className="bg-gradient-to-br from-primary/5 to-primary/10 border-b">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-primary/20 rounded-lg">
+              <Brain className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Comprehensive Burnout Assessment</CardTitle>
+          </div>
+          <CardDescription className="text-base">
             Answer {questions.length} questions to get an accurate burnout risk assessment powered by machine learning.
+            Your responses will be analyzed using advanced AI to provide personalized insights.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {/* Group questions by category */}
@@ -233,10 +278,13 @@ export default function AssessmentPage() {
                   if (categoryQuestions.length === 0) return null;
                   
                   return (
-                    <div key={category} className="space-y-4">
-                      <h3 className="text-lg font-semibold text-primary border-b pb-2">
-                        {category}
-                      </h3>
+                    <div key={category} className="space-y-5">
+                      <div className="flex items-center gap-2 pb-3 border-b-2 border-primary/20">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        <h3 className="text-xl font-bold text-primary">
+                          {category}
+                        </h3>
+                      </div>
                       {categoryQuestions.map((question, idx) => {
                         const globalIdx = questions.indexOf(question);
                         return (
@@ -245,50 +293,78 @@ export default function AssessmentPage() {
                             control={form.control}
                             name={question.id}
                             render={({ field }) => (
-                              <FormItem className="space-y-3 pl-4">
-                                <div className="flex items-center gap-2">
-                                  <FormLabel className="text-base">
-                                    {globalIdx + 1}. {question.question}
-                                  </FormLabel>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p className="text-sm max-w-xs">{question.scale}</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                              <FormItem className="space-y-4 p-4 rounded-lg bg-card/50 border">
+                                <div className="flex items-start gap-3">
+                                  <Badge variant="outline" className="mt-1 shrink-0">
+                                    {globalIdx + 1}
+                                  </Badge>
+                                  <div className="flex-1">
+                                    <div className="flex items-start gap-2">
+                                      <FormLabel className="text-base font-medium leading-relaxed">
+                                        {question.question}
+                                      </FormLabel>
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <HelpCircle className="h-4 w-4 mt-1 text-muted-foreground cursor-help shrink-0" />
+                                          </TooltipTrigger>
+                                          <TooltipContent side="top" className="max-w-sm">
+                                            <p className="text-sm">{question.scale}</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    </div>
+                                  </div>
                                 </div>
                                 <FormControl>
                                   {question.id === 'mental_health_history' ? (
                                     <RadioGroup
                                       onValueChange={(val) => field.onChange(Number(val))}
                                       value={String(field.value)}
-                                      className="flex gap-4"
+                                      className="flex gap-3"
                                     >
-                                      <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="0" id={`${question.id}-0`} />
-                                        <label htmlFor={`${question.id}-0`} className="text-sm cursor-pointer">No</label>
-                                      </div>
-                                      <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="1" id={`${question.id}-1`} />
-                                        <label htmlFor={`${question.id}-1`} className="text-sm cursor-pointer">Yes</label>
-                                      </div>
+                                      {['No', 'Yes'].map((label, idx) => (
+                                        <label
+                                          key={idx}
+                                          htmlFor={`${question.id}-${idx}`}
+                                          className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                            field.value === idx
+                                              ? 'border-primary bg-primary/10 shadow-sm'
+                                              : 'border-border hover:border-primary/50 hover:bg-accent'
+                                          }`}
+                                        >
+                                          <RadioGroupItem value={String(idx)} id={`${question.id}-${idx}`} className="sr-only" />
+                                          <span className="font-medium text-sm">{label}</span>
+                                        </label>
+                                      ))}
                                     </RadioGroup>
                                   ) : (
                                     <RadioGroup
                                       onValueChange={(val) => field.onChange(Number(val))}
                                       value={String(field.value)}
-                                      className="flex gap-3 flex-wrap"
+                                      className="grid grid-cols-5 gap-2"
                                     >
-                                      {[1, 2, 3, 4, 5].map(val => (
-                                        <div key={val} className="flex items-center space-x-2">
-                                          <RadioGroupItem value={String(val)} id={`${question.id}-${val}`} />
-                                          <label htmlFor={`${question.id}-${val}`} className="text-sm cursor-pointer">{val}</label>
-                                        </div>
-                                      ))}
+                                      {(() => {
+                                        // Parse scale labels from question.scale
+                                        const scaleLabels = question.scale.split('|').map(s => s.trim().split(' - ')[1] || s.trim());
+                                        return [1, 2, 3, 4, 5].map(val => (
+                                          <label
+                                            key={val}
+                                            htmlFor={`${question.id}-${val}`}
+                                            className={`flex flex-col items-center justify-center px-2 py-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                              field.value === val
+                                                ? 'border-primary bg-primary/10 shadow-sm'
+                                                : 'border-border hover:border-primary/50 hover:bg-accent'
+                                            }`}
+                                          >
+                                            <RadioGroupItem value={String(val)} id={`${question.id}-${val}`} className="sr-only" />
+                                            <span className="text-lg font-semibold mb-1">{val}</span>
+                                            <span className="text-xs text-center text-muted-foreground leading-tight">
+                                              {scaleLabels[val - 1] || val}
+                                            </span>
+                                          </label>
+                                        ));
+                                      })()}
                                     </RadioGroup>
                                   )}
                                 </FormControl>
@@ -304,15 +380,30 @@ export default function AssessmentPage() {
               })()}
 
               {error && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" className="border-2">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription className="font-medium">{error}</AlertDescription>
                 </Alert>
               )}
 
-              <div className="sticky bottom-4 bg-background/95 backdrop-blur pt-4 border-t">
-                <Button type="submit" className="w-full" disabled={submitting} size="lg">
-                  {submitting ? "Analyzing..." : "Submit Assessment"}
+              <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-4 -mx-6 px-6">
+                <Button 
+                  type="submit" 
+                  className="w-full text-lg shadow-lg" 
+                  disabled={submitting} 
+                  size="lg"
+                >
+                  {submitting ? (
+                    <div className="flex items-center gap-2">
+                      <Brain className="h-5 w-5 animate-pulse" />
+                      Analyzing Your Responses...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Brain className="h-5 w-5" />
+                      Submit Assessment
+                    </div>
+                  )}
                 </Button>
               </div>
             </form>

@@ -2,135 +2,143 @@
   {
     "id": "anxiety",
     "question": "How often do you feel anxious or worried?",
-    "scale": "Never (1) - Always (5)",
+    "scale": "1 - Rarely/Never | 2 - Sometimes | 3 - Often | 4 - Very Often | 5 - Always",
     "category": "Mental Health",
     "weight": 0.18
   },
   {
     "id": "self_esteem",
-    "question": "How confident do you feel about yourself?",
-    "scale": "Very confident (1) - Not confident at all (5)",
+    "question": "How would you rate your self-confidence?",
+    "scale": "1 - Very Low | 2 - Low | 3 - Moderate | 4 - High | 5 - Very High",
     "category": "Mental Health",
-    "weight": 0.50
+    "weight": 0.50,
+    "invert": true
   },
   {
     "id": "depression",
     "question": "How often do you feel sad or depressed?",
-    "scale": "Never (1) - Always (5)",
+    "scale": "1 - Rarely/Never | 2 - Sometimes | 3 - Often | 4 - Very Often | 5 - Always",
     "category": "Mental Health",
     "weight": 0.08
   },
   {
     "id": "sleep_quality",
     "question": "How would you rate your sleep quality?",
-    "scale": "Excellent (1) - Very Poor (5)",
+    "scale": "1 - Very Poor | 2 - Poor | 3 - Fair | 4 - Good | 5 - Excellent",
     "category": "Physical Health",
-    "weight": 0.04
+    "weight": 0.04,
+    "invert": true
   },
   {
     "id": "academic_performance",
     "question": "How satisfied are you with your academic performance?",
-    "scale": "Very satisfied (1) - Very dissatisfied (5)",
+    "scale": "1 - Very Dissatisfied | 2 - Dissatisfied | 3 - Neutral | 4 - Satisfied | 5 - Very Satisfied",
     "category": "Academic",
-    "weight": 0.06
+    "weight": 0.06,
+    "invert": true
   },
   {
     "id": "study_load",
-    "question": "How heavy is your current study workload?",
-    "scale": "Very light (1) - Overwhelming (5)",
+    "question": "How would you describe your current study workload?",
+    "scale": "1 - Very Light | 2 - Light | 3 - Moderate | 4 - Heavy | 5 - Overwhelming",
     "category": "Academic",
     "weight": 0.05
   },
   {
     "id": "future_career_concerns",
     "question": "How worried are you about your future career?",
-    "scale": "Not worried (1) - Extremely worried (5)",
+    "scale": "1 - Not Worried | 2 - Slightly Worried | 3 - Moderately Worried | 4 - Very Worried | 5 - Extremely Worried",
     "category": "Future",
     "weight": 0.02
   },
   {
     "id": "social_support",
     "question": "How supported do you feel by friends and family?",
-    "scale": "Very supported (1) - Not supported at all (5)",
+    "scale": "1 - Not Supported | 2 - Slightly Supported | 3 - Moderately Supported | 4 - Well Supported | 5 - Very Supported",
     "category": "Social",
-    "weight": 0.04
+    "weight": 0.04,
+    "invert": true
   },
   {
     "id": "peer_pressure",
     "question": "How much pressure do you feel from peers?",
-    "scale": "No pressure (1) - Extreme pressure (5)",
+    "scale": "1 - No Pressure | 2 - Mild Pressure | 3 - Moderate Pressure | 4 - Strong Pressure | 5 - Extreme Pressure",
     "category": "Social",
     "weight": 0.02
   },
   {
     "id": "mental_health_history",
     "question": "Do you have a personal or family history of mental health issues?",
-    "scale": "No (0) - Yes (1)",
+    "scale": "0 - No | 1 - Yes",
     "category": "Background",
     "weight": 0.02
   },
   {
     "id": "headache",
     "question": "How often do you experience headaches?",
-    "scale": "Never (1) - Very frequently (5)",
+    "scale": "1 - Rarely/Never | 2 - Occasionally | 3 - Sometimes | 4 - Often | 5 - Very Frequently",
     "category": "Physical Health",
     "weight": 0.03
   },
   {
     "id": "blood_pressure",
     "question": "Do you experience high blood pressure or related symptoms?",
-    "scale": "Never (1) - Frequently (5)",
+    "scale": "1 - Never | 2 - Rarely | 3 - Sometimes | 4 - Often | 5 - Frequently",
     "category": "Physical Health",
     "weight": 0.03
   },
   {
     "id": "breathing_problem",
     "question": "Do you experience breathing difficulties or shortness of breath?",
-    "scale": "Never (1) - Frequently (5)",
+    "scale": "1 - Never | 2 - Rarely | 3 - Sometimes | 4 - Often | 5 - Frequently",
     "category": "Physical Health",
     "weight": 0.03
   },
   {
     "id": "noise_level",
     "question": "How much does noise in your environment affect you?",
-    "scale": "Not at all (1) - Severely (5)",
+    "scale": "1 - Not At All | 2 - Slightly | 3 - Moderately | 4 - Significantly | 5 - Severely",
     "category": "Environment",
     "weight": 0.02
   },
   {
     "id": "living_conditions",
     "question": "How satisfied are you with your living conditions?",
-    "scale": "Very satisfied (1) - Very dissatisfied (5)",
+    "scale": "1 - Very Dissatisfied | 2 - Dissatisfied | 3 - Neutral | 4 - Satisfied | 5 - Very Satisfied",
     "category": "Environment",
-    "weight": 0.03
+    "weight": 0.03,
+    "invert": true
   },
   {
     "id": "safety",
     "question": "How safe do you feel in your daily environment?",
-    "scale": "Very safe (1) - Very unsafe (5)",
+    "scale": "1 - Very Unsafe | 2 - Unsafe | 3 - Neutral | 4 - Safe | 5 - Very Safe",
     "category": "Environment",
-    "weight": 0.02
+    "weight": 0.02,
+    "invert": true
   },
   {
     "id": "basic_needs",
     "question": "Are your basic needs (food, shelter, finances) being met?",
-    "scale": "Fully met (1) - Not met at all (5)",
+    "scale": "1 - Not Met At All | 2 - Barely Met | 3 - Partially Met | 4 - Mostly Met | 5 - Fully Met",
     "category": "Environment",
-    "weight": 0.03
+    "weight": 0.03,
+    "invert": true
   },
   {
     "id": "bullying",
     "question": "Have you experienced bullying or harassment?",
-    "scale": "Never (1) - Frequently (5)",
+    "scale": "1 - Never | 2 - Rarely | 3 - Sometimes | 4 - Often | 5 - Frequently",
     "category": "Social",
     "weight": 0.02
   },
   {
     "id": "extracurricular_activities",
     "question": "How balanced is your time between studies and extracurricular activities?",
-    "scale": "Well balanced (1) - Very imbalanced (5)",
+    "scale": "1 - Very Imbalanced | 2 - Imbalanced | 3 - Somewhat Balanced | 4 - Balanced | 5 - Well Balanced",
     "category": "Lifestyle",
-    "weight": 0.02
+    "weight": 0.02,
+    "invert": true
   }
 ]
 
