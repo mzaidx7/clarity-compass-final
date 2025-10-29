@@ -11,7 +11,7 @@ from api.core.security import get_current_user
 from api.services.burnout_service import get_burnout_service
 from api.services.firebase_client import save_survey
 from api.services.local_store import append_survey_history
-from api.core.config import get_settings
+from api.core.config import settings
 
 router = APIRouter(prefix="/assessment", tags=["assessment"])
 
@@ -128,7 +128,6 @@ async def submit_assessment(
     Predicts burnout and saves the result to Firestore/local store.
     """
     service = get_burnout_service()
-    settings = get_settings()
     
     try:
         # Get prediction
