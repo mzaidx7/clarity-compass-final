@@ -1,8 +1,7 @@
 {
   "name": "clarity-compass",
   "version": "1.0.0",
-  "description": "AI-Powered Student Burnout Prevention System - Final Year University Project",
-  "author": "Your Name <your.email@university.edu>",
+  "description": "AI-Powered Student Burnout Prevention System",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 9003",

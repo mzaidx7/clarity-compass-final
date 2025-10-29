@@ -175,10 +175,8 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ---
 
-## 📞 Emergency Contacts
+## 🔗 Links
 
-**Student**: [Your Name]  
-**Email**: [your.email@university.edu]  
 **GitHub**: https://github.com/mzaidx7/clarity-compass-final
 
 ---
@@ -189,21 +187,16 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 |------|---------|
 | **README.md** | Main documentation |
 | **SETUP_GUIDE.md** | Step-by-step installation |
-| **PROJECT_OVERVIEW.md** | Academic overview |
-| **SUBMISSION_CHECKLIST.md** | Pre-submission verification |
-| **GITHUB_DESCRIPTION.md** | Repository setup guide |
 | **QUICK_REFERENCE.md** | This file! |
 
 ---
 
-## 🎓 Academic Info
+## 🎯 Project Info
 
 **Project**: ClarityCompass - AI-Powered Student Burnout Prevention  
-**Type**: Final Year University Project  
-**Year**: 2024-2025  
-**Tech**: Next.js + FastAPI + Machine Learning  
-**Accuracy**: 86% (Random Forest model)  
-**Dataset**: StudentLife (48 students, 13K+ data points)  
+**Tech Stack**: Next.js 15 + FastAPI + Machine Learning  
+**ML Model**: Random Forest (86% accuracy)  
+**Training Data**: StudentLife + DASS-21 + custom responses (13K+ data points)  
 
 ---
 
@@ -234,25 +227,25 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 - **Algorithm**: Random Forest
 - **Features**: 48 behavioral features
-- **Training Data**: StudentLife dataset
+- **Training Data**: StudentLife + DASS-21 + custom responses
 - **Accuracy**: 86%
 - **Model Version**: v2
-- **Validation**: DASS-21 based
+- **Validation**: Cross-validated with multiple assessment types
 
 ---
 
 ## 🎬 Demo Script (5 minutes)
 
-**For professor demo**:
+**Suggested demo flow**:
 
 1. **[0:00-0:30]** Open application → Login with `test_student`
-2. **[0:30-1:00]** Dashboard tour → Explain burnout score and risk level
-3. **[1:00-1:30]** Quick Risk → Show rapid assessment feature
-4. **[1:30-2:30]** Full Assessment → Explain DASS-21 and ML prediction
-5. **[2:30-3:30]** Forecast → Show 7-day prediction and calendar integration
-6. **[3:30-4:00]** Calendar → Demonstrate event weighting system
-7. **[4:00-4:30]** Progress → Show history charts and achievements
-8. **[4:30-5:00]** Settings → Clear data, theme toggle
+2. **[0:30-1:00]** Dashboard tour → Show burnout score and risk level
+3. **[1:00-1:30]** Quick Risk → Demonstrate rapid assessment
+4. **[1:30-2:30]** Full Assessment → Show comprehensive survey and ML prediction
+5. **[2:30-3:30]** Forecast → Demonstrate 7-day prediction and calendar integration
+6. **[3:30-4:00]** Calendar → Show event weighting system (type × priority × intensity)
+7. **[4:00-4:30]** Progress → Display history charts and achievements
+8. **[4:30-5:00]** Settings → Theme toggle and clear data feature
 
 ---
 

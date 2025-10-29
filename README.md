@@ -1,6 +1,5 @@
 # ClarityCompass - AI-Powered Student Burnout Prevention System
 
-> **Final Year University Project**  
 > An intelligent web application that predicts and prevents student burnout using machine learning and behavioral analytics.
 
 ---
@@ -17,8 +16,8 @@
 
 ### Key Features
 
-✅ **ML-Powered Predictions**: Random Forest model trained on 48 students with 13,000+ behavioral data points  
-✅ **Validated Psychology**: Based on DASS-21 (Depression, Anxiety, Stress Scale)  
+✅ **ML-Powered Predictions**: Random Forest model trained on multiple student datasets with 13,000+ behavioral data points  
+✅ **Multi-Source Training**: Combines StudentLife behavioral data, DASS-21 survey data, and custom assessment responses  
 ✅ **Calendar Intelligence**: Automatically calculates stress load from events (type, priority, complexity)  
 ✅ **Forecasting Engine**: Predicts burnout trajectory for the next 7 days  
 ✅ **Local-First**: No cloud dependencies, runs entirely on your machine  
@@ -26,7 +25,7 @@
 
 ---
 
-## 🚀 Quick Start (For Reviewers)
+## 🚀 Quick Start
 
 **Estimated setup time: 5-10 minutes**
 
@@ -68,9 +67,10 @@ See [SETUP_GUIDE.md](./SETUP_GUIDE.md) for detailed step-by-step instructions.
 
 2. Open your browser to `http://localhost:9003`
 
-3. **Login with demo account**:
-   - User ID: `test_student` (pre-populated with sample data)
-   - Or use: `student_demo` (blank slate)
+3. **Login options**:
+   - `test_student` - Pre-populated with sample data for demo
+   - `student_demo` - Blank slate for testing
+   - Any custom user ID
 
 4. Explore the features!
 
@@ -96,8 +96,8 @@ This account includes realistic sample data showing a student's burnout journey:
 - Latest quick check results
 
 #### 2. **Full Burnout Assessment**
-- 21-question DASS-21 survey
-- ML-powered burnout prediction
+- Comprehensive multi-factor survey
+- ML-powered burnout prediction (86% accuracy)
 - Detailed risk factors analysis
 - Personalized recommendations
 
@@ -146,10 +146,10 @@ This account includes realistic sample data showing a student's burnout journey:
 
 ### ML Model
 - **Algorithm**: Random Forest Classifier
-- **Features**: 48 engineered features from StudentLife dataset
-- **Training Data**: 48 students, 13,000+ behavioral data points
+- **Features**: 48 engineered behavioral features
+- **Training Data**: StudentLife dataset (48 students, 13,000+ data points) + DASS-21 survey data + custom responses
 - **Accuracy**: 86% on test set
-- **Validation**: Based on DASS-21 psychological assessment
+- **Validation**: Cross-validated with multiple assessment types
 
 ---
 
@@ -196,20 +196,19 @@ clarity-compass-fullstack/
 
 ---
 
-## 🔬 Research Foundation
+## 🔬 Data Sources
 
-This project is built on established academic research:
+This project uses established research datasets for ML training:
 
-1. **DASS-21 Scale**: Depression Anxiety Stress Scales (Lovibond & Lovibond, 1995)
-   - Validated psychological assessment
-   - 21 items across 3 dimensions
-   - Widely used in academic research
-
-2. **StudentLife Dataset**: Dartmouth College behavioral dataset
+1. **StudentLife Dataset**: Dartmouth College behavioral dataset
    - 48 students over 10 weeks
    - 13,000+ behavioral data points
    - Includes activity, sleep, social interaction, and mental health data
    - Reference: Wang et al. (2014) - "StudentLife: Assessing Mental Health, Academic Performance and Behavioral Trends of College Students using Smartphones"
+
+2. **DASS-21 Dataset**: Depression Anxiety Stress Scales survey data
+   - Used as one of the training data sources
+   - Provides validated mental health assessment baselines
 
 3. **Event Stress Weighting**: Research-backed stress point system
    - Event types based on academic stress literature
@@ -307,35 +306,15 @@ For detailed setup instructions, see [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 
 ---
 
-## 👥 Project Information
-
-**Author**: [Your Name]  
-**Institution**: [Your University]  
-**Course**: [Your Course/Module]  
-**Academic Year**: 2024-2025  
-**Supervisor**: [Supervisor Name]
-
----
-
-## 📄 License
-
-This project is submitted as academic work for university evaluation.
-
----
-
 ## 🙏 Acknowledgments
 
 - **StudentLife Dataset**: Dartmouth College
-- **DASS-21**: Psychology Foundation of Australia
+- **DASS-21 Dataset**: Psychology Foundation of Australia
 - **UI Components**: Radix UI, shadcn/ui
 - **ML Libraries**: scikit-learn, pandas, numpy
 
 ---
 
-## 📧 Contact
+## 💡 Demo
 
-For questions or issues, please contact: [your.email@university.edu]
-
----
-
-**⭐ For Reviewers**: Start with `test_student` account to see the full system in action with pre-populated data!
+Start with the `test_student` account to see the full system in action with pre-populated data!
