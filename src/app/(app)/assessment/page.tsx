@@ -17,8 +17,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import Gauge from "@/components/Gauge";
 import ErrorState from "@/components/ErrorState";
-import { levelToColor } from "@/lib/utils";
-import type { SurveyQuestion, AssessmentResponse, RiskLevel } from "@/lib/types";
+import { levelToColor, type RiskLevel } from "@/lib/utils";
+import type { SurveyQuestion, AssessmentResponse } from "@/lib/types";
 
 export default function AssessmentPage() {
   const router = useRouter();
