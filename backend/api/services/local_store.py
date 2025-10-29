@@ -97,3 +97,26 @@ def delete_calendar_event(user_id: str, event_id: str) -> bool:
         data['calendar'][user_id] = new_events
         _write(data)
         return True
+
+# ---- Clear all data ----
+def clear_all_data(user_id: str) -> int:
+    """
+    Clear all data for a specific user (survey history and calendar events).
+    Returns the number of items cleared.
+    """
+    with _lock:
+        data = _read()
+        items_cleared = 0
+        
+        # Count and clear survey history
+        if user_id in data.get('survey_history', {}):
+            items_cleared += len(data['survey_history'][user_id])
+            del data['survey_history'][user_id]
+        
+        # Count and clear calendar events
+        if user_id in data.get('calendar', {}):
+            items_cleared += len(data['calendar'][user_id])
+            del data['calendar'][user_id]
+        
+        _write(data)
+        return items_cleared

@@ -445,6 +445,14 @@ const liveApi = {
         if (r.error || !r.data) throw new Error(r.error || 'Fetch model info failed');
         return r.data;
     },
+    // ========== Data Management Endpoints ==========
+    clearAllData: async (): Promise<{ success: boolean; message: string; items_cleared: number }> => {
+        const r = await http<{ success: boolean; message: string; items_cleared: number }>(`${API_BASE_URL}/data/clear-all`, {
+            method: 'DELETE',
+        });
+        if (r.error || !r.data) throw new Error(r.error || 'Clear data failed');
+        return r.data;
+    },
 };
 
 // Safe API that always returns {data?, error?}
@@ -474,6 +482,8 @@ export const apiSafe = {
   assessmentPredict: (body: AssessmentRequest) => http<AssessmentResponse>(`${API_BASE_URL}/assessment/predict`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
   assessmentSubmit: (body: AssessmentRequest) => http<{ success: boolean; result: AssessmentResponse }>(`${API_BASE_URL}/assessment/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
   modelInfo: () => http<ModelInfo>(`${API_BASE_URL}/assessment/model-info`),
+  // Data management
+  clearAllData: () => http<{ success: boolean; message: string; items_cleared: number }>(`${API_BASE_URL}/data/clear-all`, { method: 'DELETE' }),
 };
 
 export const api = USE_MOCK_API ? mockApi : liveApi;
