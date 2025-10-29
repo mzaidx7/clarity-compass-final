@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -13,10 +13,17 @@ type Props = {
 };
 
 export function Gauge({ value, className, colorClass = 'text-green-500', size = 180, glow = true, label = 'Burnout Score' }: Props) {
-  const v = Math.max(0, Math.min(100, value));
+  // Memoize calculations to prevent unnecessary re-renders
+  const { v, offset } = useMemo(() => {
+    const clampedValue = Math.max(0, Math.min(100, value));
+    const radius = 52;
+    const circumference = 2 * Math.PI * radius;
+    const calculatedOffset = circumference - (clampedValue / 100) * circumference;
+    return { v: clampedValue, offset: calculatedOffset };
+  }, [value]);
+
   const radius = 52;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (v / 100) * circumference;
 
   return (
     <div className={cn('relative', className)} style={{ width: size, height: size }}>

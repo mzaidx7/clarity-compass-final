@@ -67,8 +67,13 @@ export default function StatusPage() {
                             <CardTitle>Service Health</CardTitle>
                             <CardDescription>Core service status</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            {loading ? <Skeleton className="h-8 w-3/4" /> : (
+                <CardContent>
+                    {loading ? (
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-2/3" />
+                      </div>
+                    ) : (
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between"><span>Status:</span> <span className="font-medium">{health?.status}</span></div>
                                     <div className="flex justify-between"><span>Version:</span> <span className="font-medium">{health?.version}</span></div>
@@ -81,8 +86,14 @@ export default function StatusPage() {
                             <CardTitle>Model Status</CardTitle>
                             <CardDescription>Prediction model details</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            {loading ? <Skeleton className="h-12 w-full" /> : (
+                <CardContent>
+                    {loading ? (
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-2/3" />
+                      </div>
+                    ) : (
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between"><span>Using:</span> <span className="font-medium">{modelStatus?.using}</span></div>
                                     <div className="flex justify-between items-center"><span>Model Loaded:</span> <StatusIndicator status={modelStatus?.model_loaded || false} /></div>

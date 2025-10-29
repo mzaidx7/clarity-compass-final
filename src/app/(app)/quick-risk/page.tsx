@@ -16,6 +16,8 @@ import { clamp, roundDisplay, levelToColor } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import type { PredictionResponse, SurveyRequest } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 const quickRiskSchema = z.object({
   sleep_hours: z.coerce.number().min(0).max(24),
@@ -97,8 +99,25 @@ export default function QuickRiskPage() {
       <div className="grid gap-8 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Your Inputs</CardTitle>
-            <CardDescription>All values are for the last 24 hours, unless specified.</CardDescription>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <CardTitle>Your Inputs</CardTitle>
+                <CardDescription>All values are for the last 24 hours, unless specified.</CardDescription>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-5 w-5 text-muted-foreground cursor-help ml-2" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-sm">
+                    <p className="text-xs"><strong>Sleep hours:</strong> Total sleep in last 24h</p>
+                    <p className="text-xs"><strong>Study hours:</strong> Active study time</p>
+                    <p className="text-xs"><strong>Assignments due:</strong> Due in next 7 days</p>
+                    <p className="text-xs"><strong>Exams:</strong> Scheduled in next 7 days</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </CardHeader>
           <CardContent>
             <FormProvider {...form}>
@@ -152,6 +171,9 @@ export default function QuickRiskPage() {
                   <p className={`text-2xl font-semibold ${getRiskColor(prediction.risk_label)}`}>
                     {prediction.risk_label}
                   </p>
+                  {prediction.using_model === false && (
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">⚠️ Using heuristic</p>
+                  )}
                 </div>
                 <Separator />
                 <div>

@@ -5,7 +5,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { useAuth } from "@/hooks/use-auth";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
 import { Line, LineChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { levelToColor, scoreToLevel } from '@/lib/utils';
+import { levelToColor, scoreToLevel, getScoreColor } from '@/lib/utils';
+import ErrorState from '@/components/ErrorState';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type HistoryEntry = {
   timestamp: string;
@@ -15,24 +17,31 @@ type HistoryEntry = {
 
 export default function ProgressPage() {
   const { user } = useAuth();
-  const storageKey = user?.id ? `cc_history_${user.id}` : `cc_history_local`;
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { apiSafe } = await import('@/lib/api');
+      const res = await apiSafe.history(30);
+      if (res.error) {
+        setError(res.error);
+      } else {
+        setHistory(res.data?.items as any || []);
+      }
+    } catch (e: any) {
+      setError(e?.message || 'Failed to load history');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await (await import('@/lib/api')).api.getSurveyHistory(20);
-        if (!cancelled) setHistory(res.items as any);
-      } catch {
-        try {
-          const raw = localStorage.getItem(storageKey);
-          if (raw && !cancelled) setHistory(JSON.parse(raw));
-        } catch {}
-      }
-    })();
-    return () => { cancelled = true };
-  }, [storageKey]);
+    loadData();
+  }, []);
 
   const chartData = useMemo(() => {
     return (history || []).slice(-20).map(h => ({
@@ -67,21 +76,39 @@ export default function ProgressPage() {
     <div className="container mx-auto p-0">
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Your Progress</h1>
-        <p className="text-muted-foreground">Recent quick-risk scores and achievements.</p>
+        <p className="text-muted-foreground">Recent assessment scores and achievements.</p>
       </div>
+      
+      {error && (
+        <ErrorState 
+          title="Failed to Load Progress" 
+          message={error}
+          onRetry={loadData}
+          className="my-8"
+        />
+      )}
+
+      {!error && (
+      <>
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Achievements</CardTitle>
           <CardDescription>Keep up healthy habits to unlock more</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3">
-            {achievements.map(a => (
-              <div key={a.id} className={`rounded-md border px-3 py-2 text-sm ${a.unlocked ? '' : 'opacity-60'}`} title={a.hint}>
-                {a.title}
-              </div>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex flex-wrap gap-3">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-40" />)}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              {achievements.map(a => (
+                <div key={a.id} className={`rounded-md border px-3 py-2 text-sm ${a.unlocked ? '' : 'opacity-60'}`} title={a.hint}>
+                  {a.title}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
       <Card className="mb-6">
@@ -90,8 +117,10 @@ export default function ProgressPage() {
           <CardDescription>Up to the last 20 saved results.</CardDescription>
         </CardHeader>
         <CardContent>
-          {chartData.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No saved results yet. Run a Quick Risk and click "Save".</p>
+          {isLoading ? (
+            <Skeleton className="h-[220px] w-full" />
+          ) : chartData.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No saved results yet. Take an assessment and save it.</p>
           ) : (
             <ChartContainer config={chartConfig} className="min-h-[220px] w-full">
               <LineChart data={chartData}>
@@ -99,7 +128,17 @@ export default function ProgressPage() {
                 <XAxis dataKey="time" tickLine={false} axisLine={false} tickMargin={8} />
                 <YAxis domain={[0, 100]} />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Line type="monotone" dataKey="score" stroke="var(--color-score)" strokeWidth={2} dot={false} />
+                <Line 
+                  type="monotone" 
+                  dataKey="score" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={2} 
+                  dot={(props: any) => {
+                    const { cx, cy, payload, index } = props;
+                    const color = getScoreColor(payload.score || 0);
+                    return <circle key={`dot-${index}`} cx={cx} cy={cy} r={4} fill={color} stroke="white" strokeWidth={2} />;
+                  }} 
+                />
               </LineChart>
             </ChartContainer>
           )}
@@ -111,7 +150,11 @@ export default function ProgressPage() {
           <CardDescription>Date, Score, Level, and drivers</CardDescription>
         </CardHeader>
         <CardContent>
-          {history.length === 0 ? (
+          {isLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-8 w-full" />)}
+            </div>
+          ) : history.length === 0 ? (
             <p className="text-sm text-muted-foreground">No history.</p>
           ) : (
             <div className="text-sm">
@@ -139,6 +182,8 @@ export default function ProgressPage() {
           )}
         </CardContent>
       </Card>
+      </>
+      )}
     </div>
   );
 }

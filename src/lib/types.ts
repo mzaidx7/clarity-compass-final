@@ -9,6 +9,7 @@ export type PredictionResponse = {
   burnout_score: number;
   risk_label: 'Low' | 'Moderate' | 'High';
   top_drivers: string[];
+  using_model?: boolean;
 };
 
 export type FusedPredictRequest = {
@@ -113,4 +114,44 @@ export type SurveySaveFullRequest = {
   result?: PredictionResponse | null;
   timestamp?: string;
   fused?: FusedPredictResponse | null;
+};
+
+// ============================================================================
+// Burnout Assessment (New ML Model)
+// ============================================================================
+
+export type SurveyQuestion = {
+  id: string;
+  question: string;
+  scale: string;
+  weight: number;
+};
+
+export type RiskFactor = {
+  factor: string;
+  value: number;
+  importance: number;
+  risk_contribution: number;
+};
+
+export type AssessmentRequest = {
+  responses: Record<string, number>;
+};
+
+export type AssessmentResponse = {
+  burnout_score: number;
+  risk_level: 'low' | 'moderate' | 'high' | 'severe';
+  top_risk_factors: RiskFactor[];
+  using_model: boolean;
+  model_confidence: number;
+};
+
+export type ModelInfo = {
+  model_type: string;
+  features: number;
+  r2_score: number;
+  rmse: number;
+  cv_score: number;
+  train_samples: number;
+  test_samples: number;
 };

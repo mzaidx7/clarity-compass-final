@@ -14,7 +14,11 @@ import type {
   SurveySaveFullRequest,
   CalendarEventServer,
   CalendarEventCreateServer,
-  CalendarMonthDaysResponse
+  CalendarMonthDaysResponse,
+  SurveyQuestion,
+  AssessmentRequest,
+  AssessmentResponse,
+  ModelInfo
 } from './types';
 
 const MOCK_LATENCY_MS = 600;
@@ -153,32 +157,29 @@ const mockApi = {
   predictFused: async (data: FusedPredictRequest): Promise<FusedPredictResponse> => {
     await new Promise(resolve => setTimeout(resolve, MOCK_LATENCY_MS));
 
-    const { s_answers, behavior } = data;
+    const { s_answers } = data;
+    // Calculate raw stress score (sum of 7 DASS-21 items, each 0-3, max 21)
     const stressScore = s_answers.reduce((sum, val) => sum + val, 0);
-    const surveyRisk = clamp(stressScore * 3.5, 0, 100);
+    // Normalize to 0-100 scale
+    const surveyRisk = clamp((stressScore / 21) * 100, 0, 100);
+
+    // Mock top drivers based on highest rated items
+    const drivers = s_answers
+      .map((val, idx) => ({ idx: idx + 1, val }))
+      .filter(d => d.val > 0)
+      .sort((a, b) => b.val - a.val)
+      .slice(0, 3)
+      .map(d => ({ feature: `S${d.idx}`, weight: d.val / 3 }));
 
     const response: FusedPredictResponse = {
       survey: {
         predicted_stress_score: stressScore,
-        survey_risk_0_100: surveyRisk,
-        top_drivers: ['S1: Over-reacted easily', 'S6: Used a lot of nervous energy'],
+        survey_risk_0_100: Math.round(surveyRisk),
+        top_drivers: drivers,
       },
       behavior: null,
-      final_score_0_100: surveyRisk,
+      final_score_0_100: Math.round(surveyRisk),
     };
-
-    if (behavior && Object.keys(behavior).length > 0) {
-        const behaviorRisk = clamp(Object.values(behavior).reduce((sum, val) => sum + val * 5, 0), 0, 100);
-        response.behavior = {
-            predicted_raw: behaviorRisk / 5,
-            behavior_risk_0_100: behaviorRisk,
-            features_used: Object.keys(behavior).reduce((acc, key) => {
-                acc[key] = 'provided';
-                return acc;
-            }, {} as { [key: string]: "provided"|"median" }),
-        };
-        response.final_score_0_100 = clamp(surveyRisk * 0.7 + behaviorRisk * 0.3, 0, 100);
-    }
     
     return response;
   },
@@ -217,6 +218,96 @@ const mockApi = {
   devLogin: async (data: DevLoginRequest): Promise<DevLoginResponse> => {
     await new Promise(resolve => setTimeout(resolve, MOCK_LATENCY_MS));
     return { access_token: createFakeJwt(data.user_id) };
+  },
+  
+  // ========== Assessment Endpoints (New ML Model) ==========
+  getAssessmentQuestions: async (): Promise<SurveyQuestion[]> => {
+    await new Promise(resolve => setTimeout(resolve, MOCK_LATENCY_MS));
+    // Mock 19 survey questions matching v2 model
+    return [
+      { id: "anxiety", question: "How often do you feel anxious or worried?", scale: "Never (1) - Always (5)", weight: 0.18 },
+      { id: "self_esteem", question: "How confident do you feel about yourself?", scale: "Very confident (1) - Not confident at all (5)", weight: 0.50 },
+      { id: "depression", question: "How often do you feel sad or depressed?", scale: "Never (1) - Always (5)", weight: 0.08 },
+      { id: "sleep_quality", question: "How would you rate your sleep quality?", scale: "Excellent (1) - Very Poor (5)", weight: 0.04 },
+      { id: "academic_performance", question: "How satisfied are you with your academic performance?", scale: "Very satisfied (1) - Very dissatisfied (5)", weight: 0.06 },
+      { id: "study_load", question: "How heavy is your current study workload?", scale: "Very light (1) - Overwhelming (5)", weight: 0.05 },
+      { id: "future_career_concerns", question: "How worried are you about your future career?", scale: "Not worried (1) - Extremely worried (5)", weight: 0.02 },
+      { id: "social_support", question: "How supported do you feel by friends and family?", scale: "Very supported (1) - Not supported at all (5)", weight: 0.04 },
+      { id: "peer_pressure", question: "How much pressure do you feel from peers?", scale: "No pressure (1) - Extreme pressure (5)", weight: 0.02 },
+      { id: "mental_health_history", question: "Do you have a personal or family history of mental health issues?", scale: "No (0) - Yes (1)", weight: 0.02 },
+      { id: "headache", question: "How often do you experience headaches?", scale: "Never (1) - Very frequently (5)", weight: 0.03 },
+      { id: "blood_pressure", question: "Do you experience high blood pressure or related symptoms?", scale: "Never (1) - Frequently (5)", weight: 0.03 },
+      { id: "breathing_problem", question: "Do you experience breathing difficulties or shortness of breath?", scale: "Never (1) - Frequently (5)", weight: 0.03 },
+      { id: "noise_level", question: "How much does noise in your environment affect you?", scale: "Not at all (1) - Severely (5)", weight: 0.02 },
+      { id: "living_conditions", question: "How satisfied are you with your living conditions?", scale: "Very satisfied (1) - Very dissatisfied (5)", weight: 0.03 },
+      { id: "safety", question: "How safe do you feel in your daily environment?", scale: "Very safe (1) - Very unsafe (5)", weight: 0.02 },
+      { id: "basic_needs", question: "Are your basic needs (food, shelter, finances) being met?", scale: "Fully met (1) - Not met at all (5)", weight: 0.03 },
+      { id: "bullying", question: "Have you experienced bullying or harassment?", scale: "Never (1) - Frequently (5)", weight: 0.02 },
+      { id: "extracurricular_activities", question: "How balanced is your time between studies and extracurricular activities?", scale: "Well balanced (1) - Very imbalanced (5)", weight: 0.02 },
+    ];
+  },
+  
+  predictAssessment: async (data: AssessmentRequest): Promise<AssessmentResponse> => {
+    await new Promise(resolve => setTimeout(resolve, MOCK_LATENCY_MS));
+    
+    // Calculate burnout score from responses
+    const { responses } = data;
+    let totalScore = 0;
+    let totalWeight = 0;
+    
+    Object.entries(responses).forEach(([key, value]) => {
+      const normalized = key === 'mental_health_history' ? value * 100 : ((value - 1) / 4) * 100;
+      const weight = 1; // Simplified for mock
+      totalScore += normalized * weight;
+      totalWeight += weight;
+    });
+    
+    const burnoutScore = clamp(totalScore / totalWeight, 0, 100);
+    
+    let riskLevel: 'low' | 'moderate' | 'high' | 'severe';
+    if (burnoutScore < 30) riskLevel = 'low';
+    else if (burnoutScore < 50) riskLevel = 'moderate';
+    else if (burnoutScore < 70) riskLevel = 'high';
+    else riskLevel = 'severe';
+    
+    // Mock top risk factors
+    const topFactors = Object.entries(responses)
+      .map(([key, value]) => ({
+        factor: key.replace(/_/g, ' '),
+        value: key === 'mental_health_history' ? value * 100 : ((value - 1) / 4) * 100,
+        importance: Math.random() * 50,
+        risk_contribution: Math.random() * 100
+      }))
+      .sort((a, b) => b.risk_contribution - a.risk_contribution)
+      .slice(0, 3);
+    
+    return {
+      burnout_score: Math.round(burnoutScore * 100) / 100,
+      risk_level: riskLevel,
+      top_risk_factors: topFactors,
+      using_model: true,
+      model_confidence: 0.64
+    };
+  },
+  
+  submitAssessment: async (data: AssessmentRequest): Promise<{ success: boolean; result: AssessmentResponse }> => {
+    await new Promise(resolve => setTimeout(resolve, MOCK_LATENCY_MS));
+    const result = await mockApi.predictAssessment(data);
+    console.log("Saving assessment (mock):", data);
+    return { success: true, result };
+  },
+  
+  getModelInfo: async (): Promise<ModelInfo> => {
+    await new Promise(resolve => setTimeout(resolve, MOCK_LATENCY_MS));
+    return {
+      model_type: 'RandomForestRegressor v2 (mock)',
+      features: 19,
+      r2_score: 0.86,
+      rmse: 9.37,
+      cv_score: 0.865,
+      train_samples: 1488,
+      test_samples: 372
+    };
   }
 };
 
@@ -325,6 +416,35 @@ const liveApi = {
         if (r.error || !r.data) throw new Error(r.error || 'Fetch month days failed');
         return r.data;
     },
+    // ========== Assessment Endpoints (New ML Model) ==========
+    getAssessmentQuestions: async (): Promise<SurveyQuestion[]> => {
+        const r = await http<SurveyQuestion[]>(`${API_BASE_URL}/assessment/questions`);
+        if (r.error || !r.data) throw new Error(r.error || 'Fetch questions failed');
+        return r.data;
+    },
+    predictAssessment: async (data: AssessmentRequest): Promise<AssessmentResponse> => {
+        const r = await http<AssessmentResponse>(`${API_BASE_URL}/assessment/predict`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        if (r.error || !r.data) throw new Error(r.error || 'Assessment prediction failed');
+        return r.data;
+    },
+    submitAssessment: async (data: AssessmentRequest): Promise<{ success: boolean; result: AssessmentResponse }> => {
+        const r = await http<{ success: boolean; result: AssessmentResponse }>(`${API_BASE_URL}/assessment/submit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        if (r.error || !r.data) throw new Error(r.error || 'Submit assessment failed');
+        return r.data;
+    },
+    getModelInfo: async (): Promise<ModelInfo> => {
+        const r = await http<ModelInfo>(`${API_BASE_URL}/assessment/model-info`);
+        if (r.error || !r.data) throw new Error(r.error || 'Fetch model info failed');
+        return r.data;
+    },
 };
 
 // Safe API that always returns {data?, error?}
@@ -349,6 +469,11 @@ export const apiSafe = {
     url.searchParams.set('month', String(month));
     return http<CalendarMonthDaysResponse>(url.toString());
   },
+  // Assessment endpoints
+  assessmentQuestions: () => http<SurveyQuestion[]>(`${API_BASE_URL}/assessment/questions`),
+  assessmentPredict: (body: AssessmentRequest) => http<AssessmentResponse>(`${API_BASE_URL}/assessment/predict`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+  assessmentSubmit: (body: AssessmentRequest) => http<{ success: boolean; result: AssessmentResponse }>(`${API_BASE_URL}/assessment/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+  modelInfo: () => http<ModelInfo>(`${API_BASE_URL}/assessment/model-info`),
 };
 
 export const api = USE_MOCK_API ? mockApi : liveApi;

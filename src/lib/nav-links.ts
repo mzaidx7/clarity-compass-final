@@ -10,7 +10,7 @@ export interface NavLink {
 export const navLinks: NavLink[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/quick-risk', label: 'Quick Risk', icon: HeartPulse },
-  { href: '/fused-risk', label: 'Fused Risk', icon: BrainCircuit },
+  { href: '/assessment', label: 'Full Assessment', icon: BrainCircuit },
   { href: '/forecast', label: 'Forecast', icon: Activity },
   { href: '/calendar', label: 'Calendar', icon: Calendar },
   { href: '/progress', label: 'Progress', icon: BarChart },

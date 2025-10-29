@@ -39,6 +39,7 @@ export default function CalendarPage() {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [description, setDescription] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const selectedISO = useMemo(() => {
     if (!selectedDay) return undefined;
@@ -89,36 +90,84 @@ export default function CalendarPage() {
   const addEvent = async () => {
     if (!selectedISO || !title.trim()) return;
     if (!isTimeRangeValid()) return;
-    try {
-      const created = await (await import('@/lib/api')).api.addCalendarEvent({
-        title: title.trim(),
-        type,
-        date: selectedISO,
-        start: start || undefined,
-        end: end || undefined,
-        description: description || undefined,
-      } as any);
-      const updated = [...events, created as any];
-      setEvents(updated);
-      setTitle(""); setStart(""); setEnd(""); setDescription("");
-    } catch {
-      const ev: LocalEvent = {
-        id: `${Date.now()}`,
-        title: title.trim(),
-        type,
-        date: selectedISO,
-        start: start || undefined,
-        end: end || undefined,
-        description: description || undefined,
-      };
-      const updated = [...events, ev];
-      setEvents(updated);
-      try { localStorage.setItem(storageKey, JSON.stringify(updated)); } catch {}
-      setTitle(""); setStart(""); setEnd(""); setDescription("");
+    
+    // If editing, update existing event
+    if (editingId) {
+      try {
+        // Delete old, create new
+        await deleteEvent(editingId, false);
+        const created = await (await import('@/lib/api')).api.addCalendarEvent({
+          title: title.trim(),
+          type,
+          date: selectedISO,
+          start: start || undefined,
+          end: end || undefined,
+          description: description || undefined,
+        } as any);
+        const updated = [...events.filter(e => e.id !== editingId), created as any];
+        setEvents(updated);
+      } catch {
+        const ev: LocalEvent = {
+          id: editingId,
+          title: title.trim(),
+          type,
+          date: selectedISO,
+          start: start || undefined,
+          end: end || undefined,
+          description: description || undefined,
+        };
+        const updated = [...events.filter(e => e.id !== editingId), ev];
+        setEvents(updated);
+        try { localStorage.setItem(storageKey, JSON.stringify(updated)); } catch {}
+      }
+      setEditingId(null);
+    } else {
+      // Create new event
+      try {
+        const created = await (await import('@/lib/api')).api.addCalendarEvent({
+          title: title.trim(),
+          type,
+          date: selectedISO,
+          start: start || undefined,
+          end: end || undefined,
+          description: description || undefined,
+        } as any);
+        const updated = [...events, created as any];
+        setEvents(updated);
+      } catch {
+        const ev: LocalEvent = {
+          id: `${Date.now()}`,
+          title: title.trim(),
+          type,
+          date: selectedISO,
+          start: start || undefined,
+          end: end || undefined,
+          description: description || undefined,
+        };
+        const updated = [...events, ev];
+        setEvents(updated);
+        try { localStorage.setItem(storageKey, JSON.stringify(updated)); } catch {}
+      }
     }
+    setTitle(""); setStart(""); setEnd(""); setDescription("");
+  };
+  
+  const cancelEdit = () => {
+    setEditingId(null);
+    setTitle(""); setType("Study Session"); setStart(""); setEnd(""); setDescription("");
+  };
+  
+  const startEdit = (ev: LocalEvent) => {
+    setEditingId(ev.id);
+    setTitle(ev.title);
+    setType(ev.type as EventType);
+    setStart(ev.start || '');
+    setEnd(ev.end || '');
+    setDescription(ev.description || '');
   };
 
-  const deleteEvent = async (id: string) => {
+  const deleteEvent = async (id: string, showConfirm = true) => {
+    if (showConfirm && !confirm('Delete this event?')) return;
     try {
       await (await import('@/lib/api')).api.deleteCalendarEvent(id);
       const updated = events.filter(e => e.id !== id);
@@ -177,8 +226,8 @@ export default function CalendarPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Add Event</CardTitle>
-            <CardDescription>Keep entries simple and actionable.</CardDescription>
+            <CardTitle>{editingId ? 'Edit Event' : 'Add Event'}</CardTitle>
+            <CardDescription>{editingId ? 'Update your event details' : 'Keep entries simple and actionable.'}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
@@ -200,19 +249,29 @@ export default function CalendarPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="start">Start</Label>
+                <Label htmlFor="start">Start (optional)</Label>
                 <Input id="start" type="time" value={start} onChange={(e) => setStart(e.target.value)} />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="end">End</Label>
+                <Label htmlFor="end">End (optional)</Label>
                 <Input id="end" type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
               </div>
             </div>
+            {start && end && !isTimeRangeValid() && (
+              <p className="text-xs text-destructive">End time must be after start time</p>
+            )}
             <div className="space-y-1">
               <Label htmlFor="desc">Description</Label>
               <Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
-            <Button onClick={addEvent} className="w-full" disabled={!title || !selectedISO || !isTimeRangeValid()}>Add to {selectedISO || 'date'}</Button>
+            <div className="flex gap-2">
+              {editingId && (
+                <Button onClick={cancelEdit} variant="outline" className="flex-1">Cancel</Button>
+              )}
+              <Button onClick={addEvent} className="flex-1" disabled={!title || !selectedISO || !isTimeRangeValid()}>
+                {editingId ? 'Update' : 'Add'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -226,7 +285,7 @@ export default function CalendarPage() {
           <CardContent className="space-y-3">
             {dayEvents.length === 0 && <p className="text-sm text-muted-foreground">No events yet.</p>}
             {dayEvents.map(ev => (
-              <EventCard key={ev.id} ev={ev} onEdit={(id) => { const e = dayEvents.find(x=>x.id===id)!; setTitle(e.title); setType(e.type as any); setStart(e.start || ''); setEnd(e.end || ''); setDescription(e.description || ''); deleteEvent(id); }} onDelete={(id)=> { if (confirm('Delete this event?')) deleteEvent(id); }} />
+              <EventCard key={ev.id} ev={ev} onEdit={() => startEdit(ev)} onDelete={() => deleteEvent(ev.id, true)} />
             ))}
           </CardContent>
         </Card>

@@ -14,6 +14,7 @@ import type { ForecastResponse, ForecastRequest } from '@/lib/types';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const forecastSchema = z.object({
   last14: z.array(z.number().min(0).max(100)).length(14, "Must have 14 values"),
@@ -55,7 +56,12 @@ export default function ForecastPage() {
     try {
       const hist = await apiSafe.history(28);
       const items = hist.data?.items || [];
-      const scores = items.map(it => Number(it.result?.burnout_score ?? 0)).filter(n => !Number.isNaN(n));
+      // Prioritize fused scores over quick risk scores
+      const scores = items.map(it => {
+        const fusedScore = it.fused?.final_score_0_100;
+        const quickScore = it.result?.burnout_score;
+        return Number(fusedScore ?? quickScore ?? 0);
+      }).filter(n => !Number.isNaN(n));
       const last14 = Array(14).fill(0);
       for (let i = 0; i < 14; i++) {
         last14[13 - i] = scores[scores.length - 1 - i] ?? 0;
@@ -92,6 +98,9 @@ export default function ForecastPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">7-Day Burnout Forecast</h1>
         <p className="text-muted-foreground">Enter your recent risk scores and upcoming deadlines to forecast your burnout risk.</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          <strong>Note:</strong> "Use My Data" prioritizes DASS-21 scores, falls back to Quick Risk if unavailable.
+        </p>
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">
@@ -154,10 +163,10 @@ export default function ForecastPage() {
             <CardDescription>Your predicted burnout risk for the next 7 days.</CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex items-center justify-center">
-            {isLoading && <Loader2 className="h-8 w-8 animate-spin text-primary" />}
+            {isLoading && <Skeleton className="h-[250px] w-full" />}
             {error && <div className="text-center text-destructive"><AlertCircle className="mx-auto mb-2 h-8 w-8" /><p>{error}</p></div>}
             {!isLoading && !error && !prediction && <p className="text-muted-foreground">Results will be shown here.</p>}
-            {prediction && (
+            {!isLoading && prediction && (
                 <ChartContainer config={{}} className="min-h-[200px] w-full">
                     <AreaChart data={chartData}>
                         <CartesianGrid vertical={false} />

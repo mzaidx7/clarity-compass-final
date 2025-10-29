@@ -43,3 +43,16 @@ export function toLocalDayKey(d: Date | string) {
   const local = new Date(date.getTime() - tzOffset * 60 * 1000);
   return local.toISOString().slice(0, 10);
 }
+
+// Get color for score (for charts)
+export function getScoreColor(score: number): string {
+  const s = clamp(score);
+  if (s < 33) return 'hsl(142, 76%, 36%)'; // green
+  if (s <= 66) return 'hsl(48, 96%, 53%)'; // yellow
+  return 'hsl(0, 84%, 60%)'; // red
+}
+
+// Get fill color for bar charts based on score
+export function getBarFillColor(score: number): string {
+  return getScoreColor(score);
+}

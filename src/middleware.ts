@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 const PROTECTED_ROUTES = [
   '/dashboard',
   '/quick-risk',
-  '/fused-risk',
+  '/assessment',
   '/forecast',
   '/calendar',
   '/progress',
@@ -38,7 +38,7 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/quick-risk/:path*',
-    '/fused-risk/:path*',
+    '/assessment/:path*',
     '/forecast/:path*',
     '/calendar/:path*',
     '/progress/:path*',
