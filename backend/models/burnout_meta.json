@@ -1,0 +1,86 @@
+{
+  "feature_names": [
+    "anxiety",
+    "self_esteem",
+    "depression",
+    "sleep_quality",
+    "academic_performance",
+    "study_load",
+    "future_career_concerns",
+    "social_support",
+    "peer_pressure",
+    "mental_health_history"
+  ],
+  "feature_importance": [
+    {
+      "feature": "self_esteem",
+      "importance": 0.5004451964683835
+    },
+    {
+      "feature": "anxiety",
+      "importance": 0.18081391308875258
+    },
+    {
+      "feature": "depression",
+      "importance": 0.07866669531505334
+    },
+    {
+      "feature": "academic_performance",
+      "importance": 0.05578042144807363
+    },
+    {
+      "feature": "study_load",
+      "importance": 0.04760553053613704
+    },
+    {
+      "feature": "sleep_quality",
+      "importance": 0.04205175765508232
+    },
+    {
+      "feature": "social_support",
+      "importance": 0.036689927383152555
+    },
+    {
+      "feature": "future_career_concerns",
+      "importance": 0.02254830965465252
+    },
+    {
+      "feature": "peer_pressure",
+      "importance": 0.020160448348538227
+    },
+    {
+      "feature": "mental_health_history",
+      "importance": 0.015237800102174352
+    }
+  ],
+  "model_type": "RandomForestRegressor",
+  "n_estimators": 200,
+  "train_samples": 1488,
+  "test_samples": 372,
+  "rmse": 10.728485402996698,
+  "r2_score": 0.6429719676982097,
+  "cv_r2_mean": 0.6611749962618834,
+  "cv_r2_std": 0.05306969146658143,
+  "score_range": [
+    0,
+    100
+  ],
+  "risk_thresholds": {
+    "low": [
+      0,
+      30
+    ],
+    "moderate": [
+      30,
+      50
+    ],
+    "high": [
+      50,
+      70
+    ],
+    "severe": [
+      70,
+      100
+    ]
+  }
+}

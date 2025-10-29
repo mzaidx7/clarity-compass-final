@@ -1,0 +1,19 @@
+# Enforce LF endings for all text files (repo and working tree)
+* text=auto eol=lf
+
+# Common binaries (ensure no EOL conversion)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.parquet binary
+*.joblib binary
+*.pkl binary

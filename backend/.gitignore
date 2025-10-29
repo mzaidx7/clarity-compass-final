@@ -1,0 +1,34 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+*.code-workspace
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Env / secrets
+.env
+.env.*
+
+# Data (avoid huge raw dumps)
+data/studentlife/dataset/
+data/studentlife/dataset.tar*
+data/**/*.zip
+data/**/*.tar
+data/**/*.7z
+
+# Logs
+logs/
+*.log
+
+# Node (if/when frontend gets added)
+node_modules/
+dist/
+build/
