@@ -46,8 +46,8 @@ def test_scoring():
     result = service.predict(best_responses)
     print(f"  Burnout Score: {result['burnout_score']}")
     print(f"  Risk Level: {result['risk_level']}")
-    print(f"  Expected: LOW (score < 35)")
-    print(f"  ✅ PASS" if result['burnout_score'] < 35 else "  ❌ FAIL")
+    print(f"  Expected: LOW (score ~5-10)")
+    print(f"  ✅ PASS" if result['burnout_score'] < 15 else "  ❌ FAIL")
     
     # Test 2: All "worst" possible answers
     print("\n[Test 2] All WORST answers (should be HIGH burnout):")
@@ -76,8 +76,8 @@ def test_scoring():
     result = service.predict(worst_responses)
     print(f"  Burnout Score: {result['burnout_score']}")
     print(f"  Risk Level: {result['risk_level']}")
-    print(f"  Expected: HIGH/SEVERE (score > 55)")
-    print(f"  ✅ PASS" if result['burnout_score'] > 55 else "  ❌ FAIL")
+    print(f"  Expected: SEVERE (score ~90-95)")
+    print(f"  ✅ PASS" if result['burnout_score'] > 85 else "  ❌ FAIL")
     
     # Test 3: All neutral/moderate answers
     print("\n[Test 3] All NEUTRAL answers (should be MODERATE burnout):")

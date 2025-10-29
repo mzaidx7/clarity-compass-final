@@ -129,8 +129,14 @@ class BurnoutService:
         X_scaled = self.scaler.transform(X)
         
         # Predict
-        burnout_score = float(self.model.predict(X_scaled)[0])
-        burnout_score = np.clip(burnout_score, 0, 100)
+        raw_score = float(self.model.predict(X_scaled)[0])
+        raw_score = np.clip(raw_score, 0, 100)
+        
+        # Transform score to user-friendly range
+        # Model's natural range: ~32 (best) to ~94 (worst)
+        # User-friendly range: 5 (best) to 95 (worst)
+        # This makes the survey responses more intuitive
+        burnout_score = self._transform_score(raw_score)
         
         # Determine risk level
         risk_level = self._get_risk_level(burnout_score)
@@ -145,6 +151,34 @@ class BurnoutService:
             'using_model': True,
             'model_confidence': self.metadata['r2_score']
         }
+    
+    def _transform_score(self, raw_score: float) -> float:
+        """
+        Transform raw model score to user-friendly range.
+        
+        The model's natural output ranges from ~32 (best possible answers) to ~94 (worst).
+        We transform this to 5-95 to make scores more intuitive relative to survey responses.
+        
+        Linear transformation: y = mx + b where:
+        - 32 → 5 (perfect survey responses = minimal burnout)
+        - 94 → 95 (worst survey responses = severe burnout)
+        """
+        # Model's empirical range
+        model_min = 32.0
+        model_max = 94.0
+        
+        # User-friendly range
+        user_min = 5.0
+        user_max = 95.0
+        
+        # Linear transformation
+        slope = (user_max - user_min) / (model_max - model_min)
+        intercept = user_min - (slope * model_min)
+        
+        transformed = (slope * raw_score) + intercept
+        
+        # Clip to valid range
+        return np.clip(transformed, 0, 100)
     
     def _get_risk_level(self, score: float) -> str:
         """Determine risk level from burnout score."""
