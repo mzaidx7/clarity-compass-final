@@ -24,6 +24,7 @@ def create_event(body: CalendarEventCreate, user_id: str = Depends(get_current_u
         "start": body.start,
         "end": body.end,
         "description": body.description,
+        "priority": body.priority,
     })
     return evt
 

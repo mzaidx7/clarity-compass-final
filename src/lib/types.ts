@@ -96,6 +96,7 @@ export type CalendarEventServer = {
   start?: string; // HH:mm
   end?: string;
   description?: string;
+  priority?: 'low' | 'medium' | 'high';
 };
 
 export type CalendarEventCreateServer = Omit<CalendarEventServer, 'id'>;

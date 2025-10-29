@@ -4,91 +4,139 @@
 
 @layer base {
   :root {
+    /* Light Mode: Fresh Professional Theme (Blue → Teal Gradients) */
     --background: 210 40% 98%;
-    --foreground: 215 28% 17%;
+    --foreground: 222 47% 11%;
 
-    --card: 210 40% 100%;
-    --card-foreground: 215 28% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 210 40% 100%;
-    --popover-foreground: 215 28% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary: Vibrant Blue-Teal Gradient */
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 215 28% 17%;
+    /* Secondary: Soft Blue */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 215 20% 50%;
 
-    --accent: 250 80% 65%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent: Purple for highlights */
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 60%;
+    --border: 214 32% 88%;
+    --input: 214 32% 91%;
+    --ring: 199 89% 48%;
     
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --chart-1: 217 91% 60%;
-    --chart-2: 250 80% 65%;
-    --chart-3: 173 58% 39%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    /* Event Type Colors - Light Mode */
+    --event-exam: 0 84% 60%;
+    --event-assignment: 25 95% 53%;
+    --event-study: 199 89% 48%;
+    --event-sleep: 262 83% 58%;
+    --event-exercise: 142 71% 45%;
+    --event-meeting: 240 57% 59%;
+    --event-work: 39 100% 57%;
+
+    /* Priority Colors */
+    --priority-high: 0 84% 60%;
+    --priority-medium: 39 100% 57%;
+    --priority-low: 142 71% 45%;
+
+    /* Chart Colors */
+    --chart-1: 199 89% 48%;
+    --chart-2: 262 83% 58%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 39 100% 57%;
+    --chart-5: 0 84% 60%;
     
-    --sidebar-background: 210 40% 100%;
-    --sidebar-foreground: 215 28% 17%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 215 28% 17%;
-    --sidebar-ring: 217 91% 60%;
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 88%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-ring: 199 89% 48%;
+
+    /* Gradient Stops */
+    --gradient-from: 199 89% 48%;
+    --gradient-to: 173 80% 40%;
   }
 
   .dark {
-    --background: 224 71% 4%;
+    /* Dark Mode: Techy Neon Theme (Cyan → Purple with Electric Glow) */
+    --background: 222 47% 4%;
     --foreground: 210 40% 98%;
 
-    --card: 224 71% 8%;
+    --card: 222 47% 8%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 224 71% 4%;
+    --popover: 222 47% 6%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 90% 65%;
-    --primary-foreground: 222 47% 11%;
+    /* Primary: Electric Cyan with glow */
+    --primary: 189 94% 60%;
+    --primary-foreground: 222 47% 4%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    /* Secondary: Dark slate */
+    --secondary: 222 47% 12%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 222 47% 14%;
+    --muted-foreground: 215 20% 60%;
 
-    --accent: 250 90% 75%;
-    --accent-foreground: 222 47% 11%;
+    /* Accent: Neon Pink-Purple */
+    --accent: 280 100% 70%;
+    --accent-foreground: 222 47% 4%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
     
-    --border: 217.2 32.6% 22.5%;
-    --input: 217.2 32.6% 22.5%;
-    --ring: 210 90% 65%;
+    --border: 222 47% 18%;
+    --input: 222 47% 16%;
+    --ring: 189 94% 60%;
 
-    --chart-1: 210 90% 65%;
-    --chart-2: 250 90% 75%;
-    --chart-3: 173 58% 39%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    /* Event Type Colors - Dark Mode (Neon) */
+    --event-exam: 348 83% 58%;
+    --event-assignment: 33 100% 62%;
+    --event-study: 189 94% 60%;
+    --event-sleep: 271 91% 65%;
+    --event-exercise: 142 76% 50%;
+    --event-meeting: 240 86% 68%;
+    --event-work: 45 100% 62%;
+
+    /* Priority Colors - Dark Mode */
+    --priority-high: 348 83% 58%;
+    --priority-medium: 45 100% 62%;
+    --priority-low: 142 76% 50%;
+
+    /* Chart Colors - Dark Mode */
+    --chart-1: 189 94% 60%;
+    --chart-2: 280 100% 70%;
+    --chart-3: 142 76% 50%;
+    --chart-4: 45 100% 62%;
+    --chart-5: 348 83% 58%;
     
-    --sidebar-background: 224 71% 8%;
+    /* Sidebar - Dark Mode */
+    --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 22.5%;
-    --sidebar-accent: 224 71% 12%;
+    --sidebar-border: 222 47% 18%;
+    --sidebar-accent: 222 47% 14%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-ring: 210 90% 65%;
+    --sidebar-ring: 189 94% 60%;
+
+    /* Gradient Stops - Dark Mode */
+    --gradient-from: 189 94% 60%;
+    --gradient-to: 280 100% 70%;
   }
 }
 
@@ -98,5 +146,92 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Gradient Utilities */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--gradient-from)), hsl(var(--gradient-to)));
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--gradient-from)), hsl(var(--gradient-to)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Neon Glow Effect (Dark Mode) */
+  .dark .glow {
+    box-shadow: 
+      0 0 20px hsl(var(--primary) / 0.3),
+      0 0 40px hsl(var(--primary) / 0.2),
+      0 0 60px hsl(var(--primary) / 0.1);
+  }
+
+  .dark .glow-accent {
+    box-shadow: 
+      0 0 20px hsl(var(--accent) / 0.3),
+      0 0 40px hsl(var(--accent) / 0.2);
+  }
+
+  .dark .text-glow {
+    text-shadow: 
+      0 0 10px hsl(var(--primary) / 0.5),
+      0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  /* Event Type Badges */
+  .event-exam { background: hsl(var(--event-exam)); }
+  .event-assignment { background: hsl(var(--event-assignment)); }
+  .event-study { background: hsl(var(--event-study)); }
+  .event-sleep { background: hsl(var(--event-sleep)); }
+  .event-exercise { background: hsl(var(--event-exercise)); }
+  .event-meeting { background: hsl(var(--event-meeting)); }
+  .event-work { background: hsl(var(--event-work)); }
+
+  /* Priority Badges */
+  .priority-high { 
+    background: hsl(var(--priority-high) / 0.15); 
+    border: 1px solid hsl(var(--priority-high));
+    color: hsl(var(--priority-high));
+  }
+  .priority-medium { 
+    background: hsl(var(--priority-medium) / 0.15); 
+    border: 1px solid hsl(var(--priority-medium));
+    color: hsl(var(--priority-medium));
+  }
+  .priority-low { 
+    background: hsl(var(--priority-low) / 0.15); 
+    border: 1px solid hsl(var(--priority-low));
+    color: hsl(var(--priority-low));
+  }
+
+  /* Calendar Day Indicators */
+  .calendar-day {
+    @apply relative cursor-pointer rounded-lg p-2 transition-all hover:bg-accent/10;
+  }
+  
+  .calendar-day.has-events::after {
+    content: '';
+    @apply absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary;
+  }
+
+  .calendar-day.selected {
+    @apply bg-gradient-primary text-primary-foreground font-semibold;
+  }
+
+  .dark .calendar-day.selected {
+    @apply glow;
+  }
+
+  /* Enhanced Cards */
+  .card-gradient {
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
+  }
+
+  .dark .card-gradient {
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(222 47% 10%) 100%);
   }
 }

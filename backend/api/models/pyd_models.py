@@ -79,6 +79,7 @@ class CalendarEvent(BaseModel):
     start: str | None = None  # HH:mm
     end: str | None = None
     description: str | None = None
+    priority: str = "medium"  # "low", "medium", "high"
 
 class CalendarEventCreate(BaseModel):
     title: str
@@ -87,3 +88,4 @@ class CalendarEventCreate(BaseModel):
     start: str | None = None
     end: str | None = None
     description: str | None = None
+    priority: str = "medium"  # "low", "medium", "high"
