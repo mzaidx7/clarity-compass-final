@@ -26,7 +26,7 @@ export function Gauge({ value, className, colorClass = 'text-green-500', size = 
   const circumference = 2 * Math.PI * radius;
 
   return (
-    <div className={cn('relative', className)} style={{ width: size, height: size }}>
+    <div className={cn('relative', glow && 'dark:glow', className)} style={{ width: size, height: size }}>
       <svg className="absolute inset-0" viewBox="0 0 120 120" aria-hidden>
         {glow && (
           <defs>
@@ -59,8 +59,8 @@ export function Gauge({ value, className, colorClass = 'text-green-500', size = 
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center select-none">
-        <span className={cn('text-5xl font-bold tabular-nums', colorClass)}>{Math.round(v)}</span>
-        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className={cn('text-5xl font-bold tabular-nums', glow && 'dark:text-glow', colorClass)}>{Math.round(v)}</span>
+        <span className="text-xs text-muted-foreground font-medium">{label}</span>
       </div>
     </div>
   );

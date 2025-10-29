@@ -183,7 +183,7 @@ export default function DashboardPage() {
   return (
     <div className="container mx-auto p-0">
       <div className="space-y-2 mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Welcome, {user?.id || 'User'}!</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-gradient">Welcome, {user?.id || 'User'}!</h1>
         <p className="text-muted-foreground">Here's your burnout risk overview. Stay mindful and balanced.</p>
       </div>
 
@@ -199,7 +199,7 @@ export default function DashboardPage() {
       {!error && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-            <Card className="flex flex-col items-center justify-center gap-6 p-8 text-center">
+            <Card className="card-gradient dark:glow flex flex-col items-center justify-center gap-6 p-8 text-center">
               {isLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-48 w-48 rounded-full mx-auto" />
@@ -209,7 +209,7 @@ export default function DashboardPage() {
               ) : latestScore === null ? (
                 <>
                   <p className="text-muted-foreground">No recent assessment yet. Take your first assessment.</p>
-                  <Button asChild className="w-full max-w-xs">
+                  <Button asChild className="w-full max-w-xs bg-gradient-primary">
                     <Link href="/quick-risk">Take New Assessment <ArrowRight className="ml-2 h-4 w-4" /></Link>
                   </Button>
                 </>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
                     </div>
                   )}
                   
-                  <Button asChild className="w-full max-w-xs">
+                  <Button asChild className="w-full max-w-xs bg-gradient-primary">
                     <Link href="/assessment">Take New Assessment <ArrowRight className="ml-2 h-4 w-4" /></Link>
                   </Button>
                 </>
