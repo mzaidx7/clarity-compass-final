@@ -7,7 +7,6 @@ from api.routers import calendar as calendar_router
 from api.routers import assessment as assessment_router
 from api.routers import data as data_router
 import os
-from api.services.firebase_client import init_firebase
 from api.services.burnout_service import get_burnout_service
 
 app = FastAPI(title="Student Burnout API", version="0.1.0")
@@ -39,10 +38,6 @@ app.include_router(data_router.router)
 
 @app.on_event("startup")
 async def _startup_init():
-    # Initialize Firebase only when using Firebase auth
-    if os.getenv("AUTH_MODE", "dev").lower() == "firebase":
-        init_firebase()
-    
     # Initialize burnout prediction service
     print("[Startup] Loading burnout prediction model...")
     get_burnout_service()

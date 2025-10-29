@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field
 
 from api.core.security import get_current_user
 from api.services.burnout_service import get_burnout_service
-from api.services.firebase_client import save_survey
 from api.services.local_store import append_survey_history
 from api.core.config import settings
 
@@ -149,12 +148,6 @@ async def submit_assessment(
         
         # Save to local history store
         append_survey_history(user_id, data_to_save)
-        
-        # Also save to Firestore if configured
-        try:
-            save_survey(user_id, {'latest_assessment': data_to_save})
-        except Exception:
-            pass  # Firestore is optional
         
         return {
             'success': True,
