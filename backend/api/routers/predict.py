@@ -10,13 +10,14 @@ router = APIRouter(prefix="/predict", tags=["predict"])
 def status():
     """Report ML model status (v2 burnout model with 86% accuracy)."""
     service = get_burnout_service()
+    feature_count = len(service.metadata.get('feature_names', [])) if service.metadata else 0
     return {
         "using": "ml_model",  # Always ML model for v2
         "model_loaded": service.model is not None,
         "scaler_loaded": service.scaler is not None,
         "model_version": "v2",
         "accuracy": "86%",
-        "features": len(service.feature_names) if service.feature_names else 0,
+        "features": feature_count,
         "description": "Random Forest burnout prediction model with polynomial features"
     }
 
