@@ -44,7 +44,8 @@ export default function ForecastPage() {
   const form = useForm<ForecastFormValues>({
     resolver: zodResolver(forecastSchema),
     defaultValues: {
-        last14: [35, 37, 38, 37, 35, 42, 41, 34, 34, 57, 58, 32, 32, 35],
+        // Realistic journey: High stress (73→78→72) → Recovery (57→52→45) → Balanced (41→32→28→29→22→31→19)
+        last14: [73, 78, 72, 57, 52, 45, 41, 32, 28, 29, 22, 31, 19, 19],
         deadlines_next7: [0, 0, 0, 0, 0, 0, 0],
     },
   });
