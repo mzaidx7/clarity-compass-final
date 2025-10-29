@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [calendarStress, setCalendarStress] = useState<number>(0);
+  const [latestQuickCheck, setLatestQuickCheck] = useState<{score: number, date: string, risk: string} | null>(null);
 
   const calculateCalendarStress = async () => {
     try {
@@ -85,6 +86,19 @@ export default function DashboardPage() {
         return;
       }
       const items = history.data?.items || [];
+      
+      // Find latest quick check (not for main score, just for supplementary display)
+      const quickChecks = items.filter(it => {
+        const isQuickCheck = !it.type || it.type !== 'burnout_assessment';
+        return isQuickCheck && it.result && typeof it.result.burnout_score === 'number';
+      });
+      if (quickChecks.length > 0) {
+        const latest = quickChecks[quickChecks.length - 1];
+        const score = latest.result?.burnout_score || 0;
+        const risk = latest.result?.risk_label || 'Unknown';
+        const date = new Date(latest.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        setLatestQuickCheck({ score, date, risk });
+      }
       
       // Find most recent assessment (prioritize: Assessment > Fused/DASS-21 > Quick Risk)
       let latestEntry = null;
@@ -321,6 +335,40 @@ export default function DashboardPage() {
         </div>
         
         <div className="space-y-4">
+            {/* Latest Quick Check - Supplementary Info */}
+            {latestQuickCheck && (
+              <Card className="border-2 border-muted bg-muted/20">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Latest Quick Check</CardTitle>
+                    <HeartPulse className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-baseline gap-2">
+                    <span className={cn(
+                      "text-4xl font-bold",
+                      latestQuickCheck.score >= 70 ? 'text-red-400' :
+                      latestQuickCheck.score >= 50 ? 'text-orange-400' :
+                      latestQuickCheck.score >= 30 ? 'text-yellow-400' : 'text-green-400'
+                    )}>
+                      {Math.round(latestQuickCheck.score)}
+                    </span>
+                    <span className="text-sm text-muted-foreground">{latestQuickCheck.risk}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    <p>Checked on {latestQuickCheck.date}</p>
+                    <p className="mt-1 italic">This is a quick estimate, not your official burnout score.</p>
+                  </div>
+                  <Link href="/quick-risk">
+                    <Button variant="outline" size="sm" className="w-full text-xs">
+                      Take Another Quick Check
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+            
             {featureCards.map(card => (
                 <Card key={card.title} className="flex flex-col hover:border-primary/50 transition-colors">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
