@@ -5,9 +5,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { useAuth } from "@/hooks/use-auth";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
 import { Line, LineChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { levelToColor, scoreToLevel, getScoreColor } from '@/lib/utils';
+import { levelToColor, scoreToLevel, getScoreColor, cn } from '@/lib/utils';
 import ErrorState from '@/components/ErrorState';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Trophy, Zap, Heart, TrendingUp, Calendar as CalendarIcon, Lock } from 'lucide-react';
 
 type HistoryEntry = {
   timestamp: string;
@@ -58,8 +62,8 @@ export default function ProgressPage() {
       .filter(h => (h as any).type === 'burnout_assessment' && h.result?.burnout_score != null)
       .slice(-20) // Last 20 full assessments
       .map(h => ({
-        time: new Date(h.timestamp).toLocaleDateString(),
-        score: h.result?.burnout_score ?? null,
+      time: new Date(h.timestamp).toLocaleDateString(),
+      score: h.result?.burnout_score ?? null,
         type: 'Full Assessment'
       }))
       .filter(d => d.score !== null);
@@ -81,23 +85,198 @@ export default function ProgressPage() {
     score: { label: 'Score', color: 'hsl(var(--primary))' },
   } satisfies ChartConfig;
 
+  type Achievement = {
+    id: string;
+    title: string;
+    description: string;
+    unlocked: boolean;
+    progress?: number;
+    maxProgress?: number;
+    category: 'consistency' | 'wellness' | 'improvement' | 'milestone' | 'organization';
+    icon: string;
+    color: string;
+  };
+
   const achievements = useMemo(() => {
-    const items: { id: string; title: string; unlocked: boolean; hint: string }[] = [];
-    // 3-day streak
+    const items: Achievement[] = [];
+    
+    // ===== CONSISTENCY & ENGAGEMENT =====
+    
+    // Streak Achievements
     const byDay = new Set((history || []).map(h => new Date(h.timestamp).toDateString()));
-    let streak = 0; const today = new Date();
-    for (let i=0;i<3;i++){ const d=new Date(today); d.setDate(today.getDate()-i); if (byDay.has(d.toDateString())) streak++; }
-    items.push({ id: 'streak3', title: '🎖️ 3-day streak', unlocked: streak===3, hint: 'Save on 3 consecutive days' });
-    // Sleep consistency (>=7h for 4 of last 5)
-    const last5 = (history || []).slice(-5);
-    const ok = last5.filter(h => (h.input?.sleep_hours ?? 0) >= 7).length;
-    items.push({ id: 'sleep', title: '😴 Sleep Consistency', unlocked: ok >= 4, hint: '≥7h sleep on 4 of last 5' });
-    // Balanced week (avg score last 7 <= 40)
-    const last7 = (history || []).slice(-7);
-    const avg = last7.length ? last7.reduce((s,h)=> s + (h.result?.burnout_score ?? 0),0)/last7.length : 0;
-    items.push({ id: 'balanced', title: '📚 Balanced Week', unlocked: avg <= 40 && last7.length>0, hint: 'Avg score last 7 ≤ 40' });
+    let currentStreak = 0; 
+    const today = new Date();
+    for (let i = 0; i < 14; i++) { 
+      const d = new Date(today); 
+      d.setDate(today.getDate() - i); 
+      if (byDay.has(d.toDateString())) currentStreak++; 
+      else break;
+    }
+    
+    items.push({
+      id: 'streak3',
+      title: '3-Day Streak',
+      description: 'Track your burnout for 3 consecutive days',
+      unlocked: currentStreak >= 3,
+      progress: Math.min(currentStreak, 3),
+      maxProgress: 3,
+      category: 'consistency',
+      icon: '🔥',
+      color: 'from-orange-500 to-red-500'
+    });
+
+    items.push({
+      id: 'streak7',
+      title: 'Week Warrior',
+      description: 'Maintain a 7-day assessment streak',
+      unlocked: currentStreak >= 7,
+      progress: Math.min(currentStreak, 7),
+      maxProgress: 7,
+      category: 'consistency',
+      icon: '⚡',
+      color: 'from-yellow-500 to-orange-500'
+    });
+
+    // Total assessments
+    const fullAssessments = (history || []).filter(h => (h as any).type === 'burnout_assessment');
+    items.push({
+      id: 'assessments10',
+      title: 'Self-Aware Scholar',
+      description: 'Complete 10 full burnout assessments',
+      unlocked: fullAssessments.length >= 10,
+      progress: Math.min(fullAssessments.length, 10),
+      maxProgress: 10,
+      category: 'milestone',
+      icon: '🎓',
+      color: 'from-blue-500 to-purple-500'
+    });
+
+    // ===== WELLNESS ACHIEVEMENTS =====
+
+    // Sleep Consistency (last 7 entries with sleep data)
+    const last7WithSleep = (history || []).slice(-7).filter(h => h.input?.sleep_hours != null);
+    const goodSleep = last7WithSleep.filter(h => (h.input?.sleep_hours ?? 0) >= 7).length;
+    items.push({
+      id: 'sleep_master',
+      title: 'Sleep Master',
+      description: 'Get 7+ hours of sleep for 5 of last 7 days',
+      unlocked: goodSleep >= 5 && last7WithSleep.length >= 7,
+      progress: goodSleep,
+      maxProgress: 7,
+      category: 'wellness',
+      icon: '😴',
+      color: 'from-indigo-500 to-blue-500'
+    });
+
+    // Exercise/Physical Activity
+    const last7WithActivity = (history || []).slice(-7).filter(h => h.input?.physical_activity != null);
+    const activeCount = last7WithActivity.filter(h => (h.input?.physical_activity ?? 0) >= 3).length;
+    items.push({
+      id: 'active_lifestyle',
+      title: 'Active Lifestyle',
+      description: '3+ hours of exercise per week for a week',
+      unlocked: activeCount >= 5 && last7WithActivity.length >= 7,
+      progress: activeCount,
+      maxProgress: 7,
+      category: 'wellness',
+      icon: '💪',
+      color: 'from-green-500 to-teal-500'
+    });
+
+    // Social Support
+    const last7WithSupport = (history || []).slice(-7).filter(h => h.input?.social_support != null);
+    const highSupport = last7WithSupport.filter(h => (h.input?.social_support ?? 0) >= 4).length;
+    items.push({
+      id: 'social_butterfly',
+      title: 'Social Butterfly',
+      description: 'Maintain strong social support (4-5/5) for a week',
+      unlocked: highSupport >= 5 && last7WithSupport.length >= 7,
+      progress: highSupport,
+      maxProgress: 7,
+      category: 'wellness',
+      icon: '🦋',
+      color: 'from-pink-500 to-rose-500'
+    });
+
+    // ===== IMPROVEMENT & RISK MANAGEMENT =====
+
+    // Low Burnout Week
+    const last7Scores = (history || [])
+      .filter(h => (h as any).type === 'burnout_assessment' && h.result?.burnout_score != null)
+      .slice(-7);
+    const avgScore = last7Scores.length 
+      ? last7Scores.reduce((s, h) => s + (h.result?.burnout_score ?? 0), 0) / last7Scores.length 
+      : 100;
+    items.push({
+      id: 'balanced_week',
+      title: 'Balanced Week',
+      description: 'Maintain average burnout score ≤35 for a week',
+      unlocked: avgScore <= 35 && last7Scores.length >= 5,
+      progress: avgScore <= 35 ? 100 : Math.max(0, 100 - avgScore),
+      maxProgress: 100,
+      category: 'improvement',
+      icon: '⚖️',
+      color: 'from-emerald-500 to-green-500'
+    });
+
+    // Score Improvement
+    if (fullAssessments.length >= 2) {
+      const first = fullAssessments[0].result?.burnout_score ?? 0;
+      const latest = fullAssessments[fullAssessments.length - 1].result?.burnout_score ?? 0;
+      const improvement = first - latest;
+      items.push({
+        id: 'improvement',
+        title: 'Progress Champion',
+        description: 'Reduce burnout score by 15+ points',
+        unlocked: improvement >= 15,
+        progress: Math.max(0, improvement),
+        maxProgress: 15,
+        category: 'improvement',
+        icon: '📈',
+        color: 'from-cyan-500 to-blue-500'
+      });
+    }
+
+    // ===== ORGANIZATION =====
+
+    // Calendar Usage
+    const upcomingEvents = calendarEvents.filter(e => {
+      const eventDate = new Date(e.date);
+      const oneWeekFromNow = new Date();
+      oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
+      return eventDate >= today && eventDate <= oneWeekFromNow;
+    });
+
+    items.push({
+      id: 'planner',
+      title: 'Master Planner',
+      description: 'Schedule 5+ events in your calendar',
+      unlocked: upcomingEvents.length >= 5,
+      progress: Math.min(upcomingEvents.length, 5),
+      maxProgress: 5,
+      category: 'organization',
+      icon: '📅',
+      color: 'from-violet-500 to-purple-500'
+    });
+
+    // Positive Events (stress reducers)
+    const positiveEvents = calendarEvents.filter(e => 
+      ['Study Session', 'Exercise/Break', 'Sleep'].includes(e.type)
+    );
+    items.push({
+      id: 'self_care',
+      title: 'Self-Care Pro',
+      description: 'Schedule 3+ wellness activities this week',
+      unlocked: positiveEvents.length >= 3,
+      progress: Math.min(positiveEvents.length, 3),
+      maxProgress: 3,
+      category: 'organization',
+      icon: '🌟',
+      color: 'from-amber-500 to-yellow-500'
+    });
+
     return items;
-  }, [history]);
+  }, [history, calendarEvents]);
 
   return (
     <div className="container mx-auto p-0">
@@ -119,22 +298,137 @@ export default function ProgressPage() {
       <>
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Achievements</CardTitle>
-          <CardDescription>Keep up healthy habits to unlock more</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-yellow-500" />
+                Achievements
+              </CardTitle>
+              <CardDescription>Track your wellness journey and unlock rewards</CardDescription>
+            </div>
+            <Badge variant="secondary" className="text-lg px-3 py-1">
+              {achievements.filter(a => a.unlocked).length}/{achievements.length}
+            </Badge>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex flex-wrap gap-3">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-40" />)}
+            <div className="space-y-3">
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 w-full" />)}
             </div>
           ) : (
-            <div className="flex flex-wrap gap-3">
-              {achievements.map(a => (
-                <div key={a.id} className={`rounded-md border px-3 py-2 text-sm ${a.unlocked ? '' : 'opacity-60'}`} title={a.hint}>
-                  {a.title}
-                </div>
-              ))}
-            </div>
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-6 mb-4">
+                <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+                <TabsTrigger value="consistency" className="text-xs">
+                  <Zap className="h-3 w-3 mr-1" />
+                  Streak
+                </TabsTrigger>
+                <TabsTrigger value="wellness" className="text-xs">
+                  <Heart className="h-3 w-3 mr-1" />
+                  Wellness
+                </TabsTrigger>
+                <TabsTrigger value="improvement" className="text-xs">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  Growth
+                </TabsTrigger>
+                <TabsTrigger value="milestone" className="text-xs">
+                  <Trophy className="h-3 w-3 mr-1" />
+                  Milestones
+                </TabsTrigger>
+                <TabsTrigger value="organization" className="text-xs">
+                  <CalendarIcon className="h-3 w-3 mr-1" />
+                  Planning
+                </TabsTrigger>
+              </TabsList>
+
+              {['all', 'consistency', 'wellness', 'improvement', 'milestone', 'organization'].map(category => (
+                <TabsContent key={category} value={category} className="space-y-3 mt-0">
+                  {achievements
+                    .filter(a => category === 'all' || a.category === category)
+                    .map(achievement => {
+                      const progressPercent = achievement.maxProgress 
+                        ? (achievement.progress! / achievement.maxProgress) * 100 
+                        : 0;
+
+                      return (
+                        <Card 
+                          key={achievement.id} 
+                          className={cn(
+                            "relative overflow-hidden transition-all",
+                            achievement.unlocked 
+                              ? "border-2 bg-gradient-to-r shadow-md" 
+                              : "opacity-70 hover:opacity-100"
+                          )}
+                          style={achievement.unlocked ? {
+                            borderImage: `linear-gradient(135deg, var(--tw-gradient-stops)) 1`,
+                            backgroundImage: `linear-gradient(135deg, transparent, rgba(var(--primary-rgb, 0, 0, 0), 0.05))`
+                          } : {}}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-4">
+                              {/* Icon */}
+                              <div className={cn(
+                                "text-4xl shrink-0 transition-transform",
+                                achievement.unlocked ? "scale-110" : "grayscale"
+                              )}>
+                                {achievement.unlocked ? achievement.icon : <Lock className="h-10 w-10 text-muted-foreground" />}
+                              </div>
+
+                              {/* Content */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2 mb-1">
+                                  <div>
+                                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                                      {achievement.title}
+                                      {achievement.unlocked && (
+                                        <Badge className={cn("text-[10px] px-1.5 py-0 bg-gradient-to-r", achievement.color)}>
+                                          ✓ Unlocked
+                                        </Badge>
+                                      )}
+                                    </h4>
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                      {achievement.description}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Progress */}
+                                {achievement.maxProgress && achievement.maxProgress > 1 && (
+                                  <div className="mt-3 space-y-1">
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span className="text-muted-foreground">
+                                        {achievement.progress}/{achievement.maxProgress}
+                                      </span>
+                                      <span className="font-medium">
+                                        {Math.round(progressPercent)}%
+                                      </span>
+                                    </div>
+                                    <Progress 
+                                      value={progressPercent} 
+                                      className={cn(
+                                        "h-2",
+                                        achievement.unlocked && `bg-gradient-to-r ${achievement.color}`
+                                      )}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  
+                  {achievements.filter(a => category === 'all' || a.category === category).length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Trophy className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No achievements in this category yet</p>
+              </div>
+                  )}
+                </TabsContent>
+            ))}
+            </Tabs>
           )}
         </CardContent>
       </Card>

@@ -44,7 +44,7 @@ export default function ForecastPage() {
   const form = useForm<ForecastFormValues>({
     resolver: zodResolver(forecastSchema),
     defaultValues: {
-        last14: [35, 37, 38, 37, 35, 42, 41, 34, 34, 57, 58, 32, 32, 5],
+        last14: [35, 37, 38, 37, 35, 42, 41, 34, 34, 57, 58, 32, 32, 35],
         deadlines_next7: [0, 0, 0, 0, 0, 0, 0],
     },
   });
@@ -476,7 +476,7 @@ export default function ForecastPage() {
                                   <div className="bg-background/95 backdrop-blur border-2 border-border rounded-lg shadow-lg p-3">
                                     <p className="text-sm font-semibold mb-1">{data.dayLabel}</p>
                                     <p className={cn("text-2xl font-bold", risk.color)}>
-                                      {data.prediction}
+                                      {Math.round(data.prediction)}
                                     </p>
                                     <p className="text-xs text-muted-foreground mt-1">
                                       {risk.label} Risk
@@ -501,26 +501,26 @@ export default function ForecastPage() {
                 </ChartContainer>
                   </div>
 
-                  {/* Timeline Cards - Clean layout with dates */}
-                  <div className="grid grid-cols-7 gap-2.5">
+                  {/* Timeline Cards - Responsive layout with dates */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
                     {chartData.map((day, i) => {
                       const risk = getRiskLevel(day.prediction);
                       return (
                         <Card key={i} className={cn("text-center border-2", risk.bg)}>
-                          <CardContent className="p-4 space-y-2">
+                          <CardContent className="p-3 sm:p-4 space-y-2">
                             <div className="space-y-0.5">
-                              <div className="text-sm font-bold text-foreground">
+                              <div className="text-xs sm:text-sm font-bold text-foreground">
                                 {day.dayShort}
                               </div>
-                              <div className="text-[10px] text-muted-foreground font-medium">
+                              <div className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">
                                 {day.month} {day.dayNum}
                               </div>
                             </div>
-                            <div className={cn("text-3xl font-bold tabular-nums", risk.color)}>
-                              {day.prediction}
+                            <div className={cn("text-2xl sm:text-3xl font-bold tabular-nums", risk.color)}>
+                              {Math.round(day.prediction)}
                             </div>
                             <div className="pt-1">
-                              <Badge variant="outline" className="text-[9px] px-2 py-0.5 font-semibold">
+                              <Badge variant="outline" className="text-[8px] sm:text-[9px] px-1.5 sm:px-2 py-0.5 font-semibold">
                                 {risk.label}
                               </Badge>
                             </div>
@@ -535,11 +535,11 @@ export default function ForecastPage() {
                     <Card className="border-l-4" style={{ borderLeftColor: 'hsl(var(--primary))' }}>
                       <CardContent className="p-4 space-y-2">
                         <div className="flex items-start gap-3">
-                          <Sparkles className="h-5 w-5 text-primary mt-0.5" />
+                          <Sparkles className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                           <div className="flex-1">
                             <p className="text-sm font-medium mb-1">Forecast Insight</p>
-                            <p className="text-sm text-muted-foreground">
-                              Your highest predicted risk is <strong>{maxRiskDay.prediction}</strong> on <strong>{maxRiskDay.dayLabel}</strong> ({getRiskLevel(maxRiskDay.prediction).label} level). 
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              Your highest predicted risk is <strong>{Math.round(maxRiskDay.prediction)}</strong> on <strong>{maxRiskDay.dayLabel}</strong> ({getRiskLevel(maxRiskDay.prediction).label} level). 
                               {maxRiskDay.prediction >= 70 && " Consider rescheduling non-critical tasks and prioritizing rest."}
                               {maxRiskDay.prediction >= 50 && maxRiskDay.prediction < 70 && " Plan breaks and avoid overcommitting."}
                               {maxRiskDay.prediction < 50 && " Maintain your current pace and routine!"}
