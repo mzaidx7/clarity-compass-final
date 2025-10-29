@@ -24,6 +24,9 @@ const quickRiskSchema = z.object({
   study_hours: z.coerce.number().min(0).max(24),
   assignments_due: z.coerce.number().int().min(0),
   exams_within_7d: z.coerce.number().int().min(0),
+  stress_level: z.coerce.number().int().min(1).max(5),
+  social_support: z.coerce.number().int().min(1).max(5),
+  physical_activity: z.coerce.number().min(0).max(20),
 });
 
 type QuickRiskFormValues = z.infer<typeof quickRiskSchema>;
@@ -39,10 +42,13 @@ export default function QuickRiskPage() {
   const form = useForm<QuickRiskFormValues>({
     resolver: zodResolver(quickRiskSchema),
     defaultValues: {
-      sleep_hours: 8,
+      sleep_hours: 7,
       study_hours: 4,
       assignments_due: 2,
       exams_within_7d: 1,
+      stress_level: 3,
+      social_support: 3,
+      physical_activity: 3,
     },
   });
 
@@ -102,18 +108,23 @@ export default function QuickRiskPage() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <CardTitle>Your Inputs</CardTitle>
-                <CardDescription>All values are for the last 24 hours, unless specified.</CardDescription>
+                <CardDescription>7 factors for enhanced burnout prediction.</CardDescription>
               </div>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <HelpCircle className="h-5 w-5 text-muted-foreground cursor-help ml-2" />
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-sm">
-                    <p className="text-xs"><strong>Sleep hours:</strong> Total sleep in last 24h</p>
-                    <p className="text-xs"><strong>Study hours:</strong> Active study time</p>
-                    <p className="text-xs"><strong>Assignments due:</strong> Due in next 7 days</p>
-                    <p className="text-xs"><strong>Exams:</strong> Scheduled in next 7 days</p>
+                  <TooltipContent className="max-w-sm p-3">
+                    <div className="space-y-1.5">
+                      <p className="text-xs"><strong>Sleep hours:</strong> Avg. hours per night (last 24h)</p>
+                      <p className="text-xs"><strong>Study hours:</strong> Active study time per day</p>
+                      <p className="text-xs"><strong>Assignments due:</strong> Due in next 7 days</p>
+                      <p className="text-xs"><strong>Exams within 7d:</strong> Scheduled in next week</p>
+                      <p className="text-xs"><strong>Stress level:</strong> Overall stress (1=low, 5=high)</p>
+                      <p className="text-xs"><strong>Social support:</strong> Quality of support (1=poor, 5=excellent)</p>
+                      <p className="text-xs"><strong>Physical activity:</strong> Hours of exercise per week</p>
+                    </div>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

@@ -3,6 +3,9 @@ export type SurveyRequest = {
   study_hours: number;
   assignments_due: number;
   exams_within_7d: number;
+  stress_level: number;
+  social_support: number;
+  physical_activity: number;
 };
 
 export type PredictionResponse = {

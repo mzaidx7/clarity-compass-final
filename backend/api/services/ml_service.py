@@ -19,6 +19,9 @@ FEATURES: List[str] = [
     "study_hours",
     "assignments_due",
     "exams_within_7d",
+    "stress_level",
+    "social_support",
+    "physical_activity",
 ]
 
 _model = None
@@ -59,25 +62,105 @@ def _to_vector(features: dict[str, Any]) -> np.ndarray:
     return np.array(vec, dtype=float).reshape(1, -1)
 
 def _heuristic_predict(features: dict[str, Any]) -> Tuple[float, str, List[str], bool]:
-    """Simple, explainable score as a fallback when no model artifacts exist."""
+    """Enhanced heuristic with research-backed weights for burnout prediction."""
+    # Extract features with sensible defaults
     sleep = float(features.get("sleep_hours", 7))
     study = float(features.get("study_hours", 4))
     assignments = int(features.get("assignments_due", 0))
     exams = int(features.get("exams_within_7d", 0))
-
-    score = 50.0
-    score += max(0, (8 - sleep)) * 4
-    score += max(0, (study - 6)) * 2
-    score += assignments * 3
-    score += exams * 5
+    stress_level = int(features.get("stress_level", 3))
+    social_support = int(features.get("social_support", 3))
+    physical_activity = float(features.get("physical_activity", 3))
+    
+    # Start with baseline
+    score = 30.0
+    
+    # Sleep impact (research shows 7-9h is optimal)
+    if sleep < 6:
+        score += (6 - sleep) * 8  # Severe sleep deprivation
+    elif sleep < 7:
+        score += (7 - sleep) * 5  # Moderate sleep deficit
+    elif sleep > 9:
+        score += (sleep - 9) * 3  # Oversleeping can indicate issues
+    
+    # Study hours (diminishing returns, burnout risk after 6h)
+    if study > 8:
+        score += (study - 8) * 4  # Extreme study load
+    elif study > 6:
+        score += (study - 6) * 2.5  # High study load
+    
+    # Academic pressure (assignments & exams compound)
+    score += assignments * 3.5
+    score += exams * 6
+    
+    # Stress level (most direct indicator - weighted heavily)
+    # Scale: 1=low, 5=high → map to 0-20 points
+    score += (stress_level - 1) * 5
+    
+    # Social support (protective factor - inverse relationship)
+    # Scale: 1=poor, 5=excellent → subtract 0-16 points
+    score -= (social_support - 1) * 4
+    
+    # Physical activity (protective factor - optimal is 3-5h/week)
+    if physical_activity < 2:
+        score += (2 - physical_activity) * 3  # Sedentary lifestyle risk
+    elif physical_activity > 2:
+        # Exercise helps, but diminishing returns after 5h/week
+        reduction = min((physical_activity - 2) * 2, 8)
+        score -= reduction
+    
+    # Interaction effects (compound risk factors)
+    if stress_level >= 4 and social_support <= 2:
+        score += 5  # High stress + low support = amplified risk
+    if sleep < 6 and study > 7:
+        score += 6  # Sleep deprivation + overwork = danger zone
+    if exams >= 3 and assignments >= 3:
+        score += 7  # Heavy academic load convergence
+    
+    # Clamp to valid range
     score = max(0.0, min(100.0, score))
-
-    label = "Low" if score < 33 else ("Moderate" if score < 66 else "High")
+    
+    # Determine label with finer granularity
+    if score < 30:
+        label = "Low"
+    elif score < 50:
+        label = "Moderate"
+    elif score < 70:
+        label = "High"
+    else:
+        label = "Severe"
+    
+    # Build meaningful drivers list (prioritize by impact)
     drivers: List[str] = []
-    if sleep < 7: drivers.append("Low sleep")
-    if study > 6: drivers.append("Long study hours")
-    if assignments > 2: drivers.append("Many assignments")
-    if exams > 0: drivers.append("Upcoming exams")
+    driver_weights = []
+    
+    if sleep < 6.5:
+        drivers.append("Insufficient sleep")
+        driver_weights.append(8 if sleep < 6 else 5)
+    if stress_level >= 4:
+        drivers.append("High stress level")
+        driver_weights.append(stress_level * 5)
+    if exams >= 2:
+        drivers.append(f"{exams} upcoming exam{'s' if exams > 1 else ''}")
+        driver_weights.append(exams * 6)
+    if assignments >= 3:
+        drivers.append("Heavy assignment load")
+        driver_weights.append(assignments * 3.5)
+    if study > 7:
+        drivers.append("Excessive study hours")
+        driver_weights.append((study - 7) * 3)
+    if social_support <= 2:
+        drivers.append("Low social support")
+        driver_weights.append((3 - social_support) * 4)
+    if physical_activity < 2:
+        drivers.append("Low physical activity")
+        driver_weights.append((2 - physical_activity) * 3)
+    
+    # Sort drivers by weight and take top 4
+    if drivers:
+        sorted_drivers = [d for _, d in sorted(zip(driver_weights, drivers), reverse=True)]
+        drivers = sorted_drivers[:4]
+    
     return score, label, drivers, False  # False = using heuristic, not trained model
 
 def predict_burnout(features: dict[str, Any]) -> Tuple[float, str, List[str], bool]:
