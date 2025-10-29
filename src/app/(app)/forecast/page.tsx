@@ -44,8 +44,8 @@ export default function ForecastPage() {
   const form = useForm<ForecastFormValues>({
     resolver: zodResolver(forecastSchema),
     defaultValues: {
-        last14: Array(14).fill(35),
-        deadlines_next7: Array(7).fill(0),
+        last14: [35, 37, 38, 37, 35, 42, 41, 34, 34, 57, 58, 32, 32, 5],
+        deadlines_next7: [0, 0, 0, 0, 0, 0, 0],
     },
   });
 
@@ -155,14 +155,22 @@ export default function ForecastPage() {
     }
   };
 
-  const chartData = prediction ? prediction.pred.map((p, i) => ({
+  const chartData = prediction ? prediction.pred.map((p, i) => {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + i + 1);
+    
+    return {
     day: `Day ${i + 1}`,
-    dayLabel: new Date(Date.now() + (i + 1) * 86400000).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-    prediction: Math.round(p),
-    confidence: Math.round(prediction.conf[i]),
-    confLower: Math.max(0, Math.round(p - prediction.conf[i])),
-    confUpper: Math.min(100, Math.round(p + prediction.conf[i])),
-  })) : [];
+      dayShort: futureDate.toLocaleDateString('en-US', { weekday: 'short' }),
+      dayLabel: futureDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      dayNum: futureDate.getDate(),
+      month: futureDate.toLocaleDateString('en-US', { month: 'short' }),
+      prediction: Math.round(p),
+      confidence: Math.round(prediction.conf[i]),
+      confLower: Math.max(0, Math.round(p - prediction.conf[i])),
+      confUpper: Math.min(100, Math.round(p + prediction.conf[i])),
+    };
+  }) : [];
 
   const getRiskLevel = (score: number) => {
     if (score >= 70) return { label: 'Severe', color: 'text-red-500 dark:text-red-400', bg: 'bg-red-500/10' };
@@ -223,21 +231,21 @@ export default function ForecastPage() {
                           </TooltipProvider>
                         </div>
                         <div className="relative">
-                          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                          <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
                         {Array.from({ length: 14 }).map((_, i) => (
                               <Controller
                                 key={i}
                                 name={`last14.${i}`}
                                 control={form.control}
                                 render={({ field }) => (
-                                  <div className="flex flex-col items-center gap-2 min-w-[60px]">
-                                    <span className="text-xs text-muted-foreground">Day {i + 1}</span>
+                                  <div className="flex flex-col items-center gap-2 min-w-[64px] shrink-0">
+                                    <span className="text-xs text-muted-foreground font-medium">Day {i + 1}</span>
                                     <Input
                                       {...field}
                                       type="number"
                                       min={0}
                                       max={100}
-                                      className="h-12 text-center text-base font-medium"
+                                      className="h-14 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                       onChange={(e) => field.onChange(Number(e.target.value))}
                                     />
                                   </div>
@@ -268,6 +276,8 @@ export default function ForecastPage() {
                             const dayDate = new Date();
                             dayDate.setDate(dayDate.getDate() + i);
                             const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'short' });
+                            const dayNum = dayDate.getDate();
+                            const month = dayDate.toLocaleDateString('en-US', { month: 'short' });
                             
                             return (
                               <Controller
@@ -276,13 +286,16 @@ export default function ForecastPage() {
                                 control={form.control}
                                 render={({ field }) => (
                                   <div className="flex flex-col items-center gap-2">
-                                    <span className="text-xs font-medium text-muted-foreground">{dayName}</span>
+                                    <div className="text-center">
+                                      <div className="text-xs font-semibold text-foreground">{dayName}</div>
+                                      <div className="text-[10px] text-muted-foreground">{month} {dayNum}</div>
+                                    </div>
                                     <Input
                                       {...field}
                                       type="number"
                                       min={0}
                                       max={10}
-                                      className="h-12 text-center text-base font-medium"
+                                      className="h-14 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                       onChange={(e) => field.onChange(Number(e.target.value))}
                                     />
                                   </div>
@@ -415,24 +428,25 @@ export default function ForecastPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {/* Chart with proper tooltips */}
-                  <div className="h-72">
+                <div className="space-y-8">
+                  {/* Chart with proper spacing */}
+                  <div className="h-80 pt-2">
                     <ChartContainer config={chartConfig}>
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                          <defs>
+                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
+                        <defs>
                             <linearGradient id="gradientPrediction" x1="0" y1="0" x2="0" y2="1">
                               <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
                               <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                             </linearGradient>
-                          </defs>
+                        </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                           <XAxis 
                             dataKey="day" 
                             stroke="hsl(var(--muted-foreground))"
                             fontSize={11}
                             tickLine={false}
+                            height={40}
                           />
                           <YAxis 
                             stroke="hsl(var(--muted-foreground))"
@@ -440,6 +454,7 @@ export default function ForecastPage() {
                             domain={[0, 100]}
                             tickLine={false}
                             ticks={[0, 25, 50, 75, 100]}
+                            width={35}
                           />
                           <RechartsTooltip
                             content={({ active, payload }) => {
@@ -447,9 +462,9 @@ export default function ForecastPage() {
                                 const data = payload[0].payload;
                                 const risk = getRiskLevel(data.prediction);
                                 return (
-                                  <div className="bg-background/95 backdrop-blur border border-border rounded-lg shadow-lg p-3">
-                                    <p className="text-sm font-medium mb-1">{data.dayLabel}</p>
-                                    <p className={cn("text-xl font-bold", risk.color)}>
+                                  <div className="bg-background/95 backdrop-blur border-2 border-border rounded-lg shadow-lg p-3">
+                                    <p className="text-sm font-semibold mb-1">{data.dayLabel}</p>
+                                    <p className={cn("text-2xl font-bold", risk.color)}>
                                       {data.prediction}
                                     </p>
                                     <p className="text-xs text-muted-foreground mt-1">
@@ -467,30 +482,37 @@ export default function ForecastPage() {
                             stroke="hsl(var(--primary))"
                             strokeWidth={3}
                             fill="url(#gradientPrediction)"
-                            dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
-                            activeDot={{ r: 6, strokeWidth: 0 }}
+                            dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 5 }}
+                            activeDot={{ r: 7, strokeWidth: 0 }}
                           />
-                        </AreaChart>
+                    </AreaChart>
                       </ResponsiveContainer>
-                    </ChartContainer>
+                </ChartContainer>
                   </div>
 
-                  {/* Timeline Cards */}
-                  <div className="grid grid-cols-7 gap-2">
+                  {/* Timeline Cards - Clean layout with dates */}
+                  <div className="grid grid-cols-7 gap-2.5">
                     {chartData.map((day, i) => {
                       const risk = getRiskLevel(day.prediction);
                       return (
-                        <Card key={i} className={cn("text-center", risk.bg)}>
-                          <CardContent className="p-3 space-y-2">
-                            <div className="text-xs text-muted-foreground font-medium">
-                              {day.dayLabel.split(',')[0]}
+                        <Card key={i} className={cn("text-center border-2", risk.bg)}>
+                          <CardContent className="p-4 space-y-2">
+                            <div className="space-y-0.5">
+                              <div className="text-sm font-bold text-foreground">
+                                {day.dayShort}
+                              </div>
+                              <div className="text-[10px] text-muted-foreground font-medium">
+                                {day.month} {day.dayNum}
+                              </div>
                             </div>
-                            <div className={cn("text-2xl font-bold", risk.color)}>
+                            <div className={cn("text-3xl font-bold tabular-nums", risk.color)}>
                               {day.prediction}
                             </div>
-                            <Badge variant="outline" className="text-[10px] px-1 py-0">
-                              {risk.label}
-                            </Badge>
+                            <div className="pt-1">
+                              <Badge variant="outline" className="text-[9px] px-2 py-0.5 font-semibold">
+                                {risk.label}
+                              </Badge>
+                            </div>
                           </CardContent>
                         </Card>
                       );
