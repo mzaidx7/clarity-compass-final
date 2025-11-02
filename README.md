@@ -53,6 +53,8 @@ powershell -ExecutionPolicy Bypass -File ./setup.ps1
 
 # 3. Start the application
 npm run dev:full
+
+# Wait 15 seconds for servers to start, then visit http://localhost:9003
 ```
 
 **Option 2: Manual Setup**
