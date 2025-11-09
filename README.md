@@ -202,17 +202,20 @@ clarity-compass-fullstack/
 
 This project uses established research datasets for ML training:
 
-1. **Student Stress Monitoring (Kaggle)** – `Stress_Dataset.csv` & `StressLevelDataset.csv`
+1. **Student Stress Monitoring (Kaggle)** – `Stress_Dataset.csv` & `StressLevelDataset.csv`  
+   - Dataset link: [kaggle.com/datasets/mdsultanulislamovi/student-stress-monitoring-datasets](https://www.kaggle.com/datasets/mdsultanulislamovi/student-stress-monitoring-datasets)
    - 1,000+ student self-report samples with labelled stress levels
    - Rich academic, sleep, social support, and mental health indicators
    - Provides the core target (`stress_level`) and baseline features for the model
 
-2. **Student Mental Stress & Coping Mechanisms (Kaggle)**
+2. **Student Mental Stress & Coping Mechanisms (Kaggle)**  
+   - Dataset link: [kaggle.com/datasets/salahuddinahmedshuvo/student-mental-stress-and-coping-mechanisms](https://www.kaggle.com/datasets/salahuddinahmedshuvo/student-mental-stress-and-coping-mechanisms)
    - 300+ survey responses covering coping habits, family support, and financial stress
    - Adds lifestyle and coping-behaviour dimensions not present in the monitoring dataset
    - Integrated through feature engineering to enrich burnout drivers
 
-3. **StudentLife Behavioral Traces (Dartmouth College)**
+3. **StudentLife Behavioral Traces (Dartmouth College)**  
+   - Dataset link: [studentlife.cs.dartmouth.edu](https://studentlife.cs.dartmouth.edu/)
    - Longitudinal mobile-sensing data (sleep, activity, mood) across 48 students
    - Used for temporal calibration, feature scaling, and realistic demo data
    - Reference: Wang et al. (2014) “StudentLife: Assessing Mental Health, Academic Performance and Behavioral Trends...”
