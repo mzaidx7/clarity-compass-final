@@ -314,9 +314,11 @@ For detailed setup instructions, see [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 
 ## 🙏 Acknowledgments
 
-- **StudentLife Dataset**: Dartmouth College
-- **DASS-21 Dataset**: Psychology Foundation of Australia
-- **UI Components**: Radix UI, shadcn/ui
+- **StudentLife Dataset**: Dartmouth College  
+- **Student Stress Monitoring Datasets**: Kaggle contributors  
+- **Student Mental Stress & Coping Mechanisms**: Kaggle contributors  
+- **DASS-21 Dataset**: Psychology Foundation of Australia  
+- **UI Components**: Radix UI, shadcn/ui  
 - **ML Libraries**: scikit-learn, pandas, numpy
 
 ---
