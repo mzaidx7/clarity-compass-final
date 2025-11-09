@@ -17,7 +17,7 @@
 ### Key Features
 
 ✅ **ML-Powered Predictions**: Random Forest model trained on multiple student datasets with 13,000+ behavioral data points  
-✅ **Multi-Source Training**: Combines StudentLife behavioral data, DASS-21 survey data, and custom assessment responses  
+✅ **Multi-Source Training**: Combines three Kaggle student stress datasets (Stress_Dataset.csv, StressLevelDataset.csv, Student Mental Stress & Coping) with StudentLife behavioral traces for calibration  
 ✅ **Calendar Intelligence**: Automatically calculates stress load from events (type, priority, complexity)  
 ✅ **Forecasting Engine**: Predicts burnout trajectory for the next 7 days  
 ✅ **Local-First**: No cloud dependencies, runs entirely on your machine  
@@ -202,20 +202,24 @@ clarity-compass-fullstack/
 
 This project uses established research datasets for ML training:
 
-1. **StudentLife Dataset**: Dartmouth College behavioral dataset
-   - 48 students over 10 weeks
-   - 13,000+ behavioral data points
-   - Includes activity, sleep, social interaction, and mental health data
-   - Reference: Wang et al. (2014) - "StudentLife: Assessing Mental Health, Academic Performance and Behavioral Trends of College Students using Smartphones"
+1. **Student Stress Monitoring (Kaggle)** – `Stress_Dataset.csv` & `StressLevelDataset.csv`
+   - 1,000+ student self-report samples with labelled stress levels
+   - Rich academic, sleep, social support, and mental health indicators
+   - Provides the core target (`stress_level`) and baseline features for the model
 
-2. **DASS-21 Dataset**: Depression Anxiety Stress Scales survey data
-   - Used as one of the training data sources
-   - Provides validated mental health assessment baselines
+2. **Student Mental Stress & Coping Mechanisms (Kaggle)**
+   - 300+ survey responses covering coping habits, family support, and financial stress
+   - Adds lifestyle and coping-behaviour dimensions not present in the monitoring dataset
+   - Integrated through feature engineering to enrich burnout drivers
 
-3. **Event Stress Weighting**: Research-backed stress point system
-   - Event types based on academic stress literature
-   - Three-dimensional weighting (type × priority × complexity)
-   - Includes stress-reducing activities (exercise, social, breaks)
+3. **StudentLife Behavioral Traces (Dartmouth College)**
+   - Longitudinal mobile-sensing data (sleep, activity, mood) across 48 students
+   - Used for temporal calibration, feature scaling, and realistic demo data
+   - Reference: Wang et al. (2014) “StudentLife: Assessing Mental Health, Academic Performance and Behavioral Trends...”
+
+4. **Event Stress Weighting Research**
+   - Literature-backed stress multipliers for calendar events (type × priority × intensity)
+   - Powers the calendar stress scoring and forecast adjustments
 
 ---
 

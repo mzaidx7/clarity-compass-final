@@ -16,6 +16,15 @@ pip install -r requirements.txt
 uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
+## Training data (Kaggle pipeline)
+
+- `training_data/kaggle_raw/stress_monitoring/Stress_Dataset.csv`
+- `training_data/kaggle_raw/stress_monitoring/StressLevelDataset.csv`
+- `training_data/kaggle_raw/mental_stress_coping/Student_Mental_Stress_and_Coping_Mechanisms.csv`
+- StudentLife sensing data (for calibration + seeded demo content)
+
+The scripts in `archive/research_scripts/research/` download the Kaggle datasets (`download_datasets.py`) and merge them during model training (`train_burnout_model.py`).
+
 Notes:
 - The `research/` folder contains research/training utilities (DASS-21 survey, behavior model, legacy app). The production API runs from `api/main.py`.
 - If you plan to expose fused prediction in the API, we can add a `/predict/fused` route after aligning model paths.

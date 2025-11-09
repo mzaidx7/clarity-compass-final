@@ -196,7 +196,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 **Project**: ClarityCompass - AI-Powered Student Burnout Prevention  
 **Tech Stack**: Next.js 15 + FastAPI + Machine Learning  
 **ML Model**: Random Forest (86% accuracy)  
-**Training Data**: StudentLife + DASS-21 + custom responses (13K+ data points)  
+**Training Data**: Three Kaggle student stress datasets (Stress_Dataset.csv, StressLevelDataset.csv, Student Mental Stress & Coping) calibrated with StudentLife behavioral traces  
 
 ---
 
@@ -227,7 +227,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 - **Algorithm**: Random Forest
 - **Features**: 48 behavioral features
-- **Training Data**: StudentLife + DASS-21 + custom responses
+- **Training Data**: Kaggle (Stress_Dataset.csv, StressLevelDataset.csv, Student Mental Stress & Coping) + StudentLife calibration
 - **Accuracy**: 86%
 - **Model Version**: v2
 - **Validation**: Cross-validated with multiple assessment types
