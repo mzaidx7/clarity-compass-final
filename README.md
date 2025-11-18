@@ -142,7 +142,7 @@ This account includes realistic sample data showing a student's burnout journey:
 
 ### Backend
 - **API Framework**: FastAPI (Python)
-- **ML Models**: scikit-learn (Random Forest)
+- **ML Models**: scikit-learn (Random Forest Regressor)
 - **Data Processing**: pandas, numpy
 - **Authentication**: JWT (dev mode for local)
 - **Storage**: JSON file-based (local development)
@@ -166,7 +166,7 @@ clarity-compass-fullstack/
 │   │   ├── (app)/               # Authenticated pages
 │   │   │   ├── dashboard/       # Main dashboard
 │   │   │   ├── quick-risk/      # Quick assessment
-│   │   │   ├── fused-risk/      # Full DASS-21 assessment
+│   │   │   ├── fused-risk/      # Optional fused risk assessment (legacy)
 │   │   │   ├── forecast/        # 7-day forecast
 │   │   │   ├── calendar/        # Event management
 │   │   │   └── progress/        # History & achievements

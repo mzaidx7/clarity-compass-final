@@ -5,7 +5,7 @@
 - Endpoints:
   - `/auth/*`, `/survey/save`, `/predict`, `/predict/status`
   - `/forecast` (7-day forecast of fused/burnout score)
-  - `/predict/fused` (DASS-21 + optional behavior → fused risk)
+  - `/predict/fused` (Optional fused risk prediction - legacy feature)
 - Models: `models/burnout_model_v2.joblib` (Random Forest Regressor) + `models/burnout_scaler_v2.joblib` + `models/burnout_meta_v2.json`
 
 ## Run locally
@@ -25,7 +25,7 @@ uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 The scripts in `archive/research_scripts/research/` merge and preprocess the two Kaggle datasets during model training (`improve_model_accuracy.py`). The final model uses 19 core features with polynomial interactions (~190 transformed features).
 
 Notes:
-- The `research/` folder contains research/training utilities (DASS-21 survey, behavior model, legacy app). The production API runs from `api/main.py`.
+- The `research/` folder contains research/training utilities (legacy features, behavior model). The production API runs from `api/main.py`.
 - If you plan to expose fused prediction in the API, we can add a `/predict/fused` route after aligning model paths.
 
 ## Frontend usage
