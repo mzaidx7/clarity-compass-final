@@ -6,9 +6,9 @@
 
 ## 📋 Project Overview
 
-**ClarityCompass** is a comprehensive burnout prevention system designed specifically for university students. It combines validated psychological assessments (DASS-21), behavioral data analysis, and machine learning to provide:
+**ClarityCompass** is a comprehensive burnout prevention system designed specifically for university students. It combines a 19-item burnout assessment, behavioral data analysis, and machine learning to provide:
 
-- 🎯 **Real-time burnout risk assessment** using a Random Forest ML model (86% accuracy)
+- 🎯 **Real-time burnout risk assessment** using a Random Forest Regressor (R² ≈ 0.86)
 - 📊 **7-day burnout forecasting** based on historical patterns and upcoming deadlines
 - 📅 **Smart calendar integration** with stress-weighted event tracking
 - 📈 **Progress monitoring** with achievement tracking and trend visualization
@@ -16,8 +16,9 @@
 
 ### Key Features
 
-✅ **ML-Powered Predictions**: Random Forest model trained on multiple student datasets with 13,000+ behavioral data points  
-✅ **Multi-Source Training**: Combines three Kaggle student stress datasets (Stress_Dataset.csv, StressLevelDataset.csv, Student Mental Stress & Coping) with StudentLife behavioral traces for calibration  
+✅ **ML-Powered Predictions**: Random Forest Regressor trained on two merged Kaggle student stress datasets  
+✅ **19-Feature Model**: Psychological, academic, social, and physical indicators with polynomial interactions (~190 transformed features)  
+✅ **StudentLife-Inspired**: Behavioral features inspired by StudentLife research, with synthetic proxies for physiological indicators  
 ✅ **Calendar Intelligence**: Automatically calculates stress load from events (type, priority, complexity)  
 ✅ **Forecasting Engine**: Predicts burnout trajectory for the next 7 days  
 ✅ **Local-First**: No cloud dependencies, runs entirely on your machine  
@@ -98,8 +99,8 @@ This account includes realistic sample data showing a student's burnout journey:
 - Latest quick check results
 
 #### 2. **Full Burnout Assessment**
-- Comprehensive multi-factor survey
-- ML-powered burnout prediction (86% accuracy)
+- 19-question comprehensive survey
+- ML-powered burnout prediction (R² ≈ 0.86, RMSE ≈ 9.37)
 - Detailed risk factors analysis
 - Personalized recommendations
 
@@ -147,11 +148,12 @@ This account includes realistic sample data showing a student's burnout journey:
 - **Storage**: JSON file-based (local development)
 
 ### ML Model
-- **Algorithm**: Random Forest Classifier
-- **Features**: 48 engineered behavioral features
-- **Training Data**: StudentLife dataset (48 students, 13,000+ data points) + DASS-21 survey data + custom responses
-- **Accuracy**: 86% on test set
-- **Validation**: Cross-validated with multiple assessment types
+- **Algorithm**: Random Forest Regressor
+- **Base Features**: 19 core features (psychological, academic, social, physical)
+- **Feature Engineering**: Degree-2 polynomial interactions (~190 transformed features)
+- **Training Data**: Two merged Kaggle student stress datasets (StressLevelDataset.csv, Student Mental Stress & Coping Mechanisms.csv)
+- **Performance**: R² ≈ 0.86, RMSE ≈ 9.37, MAE ≈ 6.12 on 20% holdout test set
+- **Validation**: 5-fold cross-validation (mean R² = 0.865 ± 0.023)
 
 ---
 
@@ -180,14 +182,14 @@ clarity-compass-fullstack/
 │   │   ├── models/             # Pydantic models
 │   │   └── core/               # Config & security
 │   ├── models/                  # Trained ML models
-│   │   ├── survey_model.joblib # DASS-21 model
-│   │   ├── behavior_studentlife.joblib # Behavior model
-│   │   └── scaler.joblib       # Feature scaler
+│   │   ├── burnout_model_v2.joblib # Main Random Forest Regressor
+│   │   ├── burnout_scaler_v2.joblib # Feature scaler
+│   │   ├── burnout_meta_v2.json   # Model metadata (features, thresholds)
+│   │   └── burnout_survey_v2.json # 19-question survey definition
 │   ├── data/                    # Training data & storage
-│   │   ├── dass21/             # DASS-21 dataset
-│   │   ├── studentlife/        # StudentLife dataset
-│   │   └── local_store.json    # User data (dev)
-│   └── research/                # Training scripts
+│   │   ├── archive/training_data/ # Kaggle datasets (merged for training)
+│   │   └── local_store.json    # User data (dev mode)
+│   └── archive/research_scripts/ # Training & research scripts
 │
 ├── docs/                         # Documentation
 ├── setup.ps1                    # Windows setup script
@@ -202,23 +204,24 @@ clarity-compass-fullstack/
 
 This project uses established research datasets for ML training:
 
-1. **Student Stress Monitoring (Kaggle)** – `Stress_Dataset.csv` & `StressLevelDataset.csv`  
+1. **Student Stress Monitoring (Kaggle)** – `StressLevelDataset.csv`  
    - Dataset link: [kaggle.com/datasets/mdsultanulislamovi/student-stress-monitoring-datasets](https://www.kaggle.com/datasets/mdsultanulislamovi/student-stress-monitoring-datasets)
-   - 1,000+ student self-report samples with labelled stress levels
-   - Rich academic, sleep, social support, and mental health indicators
-   - Provides the core target (`stress_level`) and baseline features for the model
+   - Student self-report samples with stress levels and psychological indicators
+   - Rich academic, sleep, social support, and mental health features
+   - Provides core features including anxiety, self-esteem, depression, sleep quality, and physical health indicators
 
 2. **Student Mental Stress & Coping Mechanisms (Kaggle)**  
    - Dataset link: [kaggle.com/datasets/salahuddinahmedshuvo/student-mental-stress-and-coping-mechanisms](https://www.kaggle.com/datasets/salahuddinahmedshuvo/student-mental-stress-and-coping-mechanisms)
-   - 300+ survey responses covering coping habits, family support, and financial stress
-   - Adds lifestyle and coping-behaviour dimensions not present in the monitoring dataset
+   - Survey responses covering coping habits, family support, and financial stress
+   - Adds lifestyle and coping-behaviour dimensions
    - Integrated through feature engineering to enrich burnout drivers
 
-3. **StudentLife Behavioral Traces (Dartmouth College)**  
+3. **StudentLife Behavioral Traces (Dartmouth College)** - *Reference Only*  
    - Dataset link: [studentlife.cs.dartmouth.edu](https://studentlife.cs.dartmouth.edu/)
-   - Longitudinal mobile-sensing data (sleep, activity, mood) across 48 students
-   - Used for temporal calibration, feature scaling, and realistic demo data
-   - Reference: Wang et al. (2014) “StudentLife: Assessing Mental Health, Academic Performance and Behavioral Trends...”
+   - Used to **inspire** feature design (e.g., physiological stress indicators)
+   - Synthetic proxy variables generated for missing physiological features (blood pressure, breathing problems, etc.)
+   - **Not directly merged** into training data; informed feature engineering approach
+   - Reference: Wang et al. (2014) "StudentLife: Assessing Mental Health, Academic Performance and Behavioral Trends..."
 
 4. **Event Stress Weighting Research**
    - Literature-backed stress multipliers for calendar events (type × priority × intensity)
@@ -264,7 +267,7 @@ This project uses established research datasets for ML training:
 1. **Local-First Architecture**: No cloud dependencies to avoid billing issues and ensure easy setup
 2. **Separate Quick vs Full Assessments**: Prevents survey fatigue while maintaining ML accuracy
 3. **Calendar Integration**: Proactive burnout prevention through deadline awareness
-4. **Score Transformation**: Raw ML output (32-94) transformed to intuitive 5-95 scale
+4. **Score Transformation**: Continuous burnout score (0-100) mapped to four risk bands (Low/Moderate/High/Severe)
 5. **Achievement System**: Gamification to encourage regular self-monitoring
 
 ### Known Limitations
@@ -317,10 +320,9 @@ For detailed setup instructions, see [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 
 ## 🙏 Acknowledgments
 
-- **StudentLife Dataset**: Dartmouth College  
+- **StudentLife Dataset**: Dartmouth College (feature inspiration)  
 - **Student Stress Monitoring Datasets**: Kaggle contributors  
 - **Student Mental Stress & Coping Mechanisms**: Kaggle contributors  
-- **DASS-21 Dataset**: Psychology Foundation of Australia  
 - **UI Components**: Radix UI, shadcn/ui  
 - **ML Libraries**: scikit-learn, pandas, numpy
 

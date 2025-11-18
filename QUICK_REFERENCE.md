@@ -156,7 +156,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 - [ ] Dashboard - Current burnout score
 - [ ] Quick Risk - 7-question rapid assessment
-- [ ] Full Assessment - 21-question DASS-21 survey
+- [ ] Full Assessment - 19-question burnout survey
 - [ ] Forecast - 7-day burnout prediction
 - [ ] Calendar - Event management with stress weighting
 - [ ] Progress - History charts and achievements
@@ -168,7 +168,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 1. **Login** with `test_student`
 2. **Dashboard** - View current data
 3. **Quick Risk** - Take 2-minute check
-4. **Full Assessment** - Complete DASS-21 survey
+4. **Full Assessment** - Complete 19-question burnout survey
 5. **Forecast** - Click "Load My Data"
 6. **Calendar** - View existing events
 7. **Progress** - Check history and achievements
@@ -195,8 +195,8 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 **Project**: ClarityCompass - AI-Powered Student Burnout Prevention  
 **Tech Stack**: Next.js 15 + FastAPI + Machine Learning  
-**ML Model**: Random Forest (86% accuracy)  
-**Training Data**: Three Kaggle student stress datasets (Stress_Dataset.csv, StressLevelDataset.csv, Student Mental Stress & Coping) calibrated with StudentLife behavioral traces  
+**ML Model**: Random Forest Regressor (R² ≈ 0.86)  
+**Training Data**: Two merged Kaggle student stress datasets (StressLevelDataset.csv, Student Mental Stress & Coping Mechanisms.csv) with StudentLife-inspired feature engineering  
 
 ---
 
@@ -225,10 +225,10 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ## 📈 ML Model Stats
 
-- **Algorithm**: Random Forest
-- **Features**: 48 behavioral features
-- **Training Data**: Kaggle (Stress_Dataset.csv, StressLevelDataset.csv, Student Mental Stress & Coping) + StudentLife calibration
-- **Accuracy**: 86%
+- **Algorithm**: Random Forest Regressor
+- **Base Features**: 19 core features (with polynomial interactions → ~190 transformed features)
+- **Training Data**: Two merged Kaggle datasets (StressLevelDataset.csv, Student Mental Stress & Coping Mechanisms.csv)
+- **Performance**: R² ≈ 0.86, RMSE ≈ 9.37, MAE ≈ 6.12
 - **Model Version**: v2
 - **Validation**: Cross-validated with multiple assessment types
 
@@ -241,7 +241,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 1. **[0:00-0:30]** Open application → Login with `test_student`
 2. **[0:30-1:00]** Dashboard tour → Show burnout score and risk level
 3. **[1:00-1:30]** Quick Risk → Demonstrate rapid assessment
-4. **[1:30-2:30]** Full Assessment → Show comprehensive survey and ML prediction
+4. **[1:30-2:30]** Full Assessment → Show 19-question survey and ML prediction
 5. **[2:30-3:30]** Forecast → Demonstrate 7-day prediction and calendar integration
 6. **[3:30-4:00]** Calendar → Show event weighting system (type × priority × intensity)
 7. **[4:00-4:30]** Progress → Display history charts and achievements
